@@ -1,8 +1,0 @@
-VAR
-	r_actual_flow : USINT;
-	k_d : REAL;
-	k_i : REAL;
-	k_p : REAL;
-	r_target_flow : REAL;
-	i_current_flow : INT;
-END_VAR

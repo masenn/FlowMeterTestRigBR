@@ -5,6 +5,12 @@
 #include <fileio.h>
 
 
+#define ERR_FILE_MISSING	20708
+#define ERR_NONE			0
+#define ERR_BUSY			65535
+#define ERR_GENERAL			20799
+#define ERR_UNDEFINED		-1
+
 /***** Variable declaration *****/
 _LOCAL BOOL bOK;
 _LOCAL USINT byStep, byErrorLevel;
@@ -33,43 +39,39 @@ bool file_exists()
 
 }
 
-int open_file(char* file_name)
+int open_file(FOpen* file, char* file_name)
 {
 	/* Initialize file open structrue */
-	FOpen.enable = 1;
-	FOpen.pDevice = (UDINT)file_name;
-	FOpen.pFile = (UDINT)"TestFile.csv";
-	FOpen.mode = fiREAD_WRITE;                        /* Read and write access */
+	file->enable = 1;
+	file->pDevice = (UDINT)"USER";
+	file->pFile = (UDINT)file_name;
+	file->mode = fiREAD_WRITE;                        /* Read and write access */
 
 	/* Call FUB */
-	FileOpen(&FOpen);
+	FileOpen(file);
 
 	/* Get FBK output information */
-	dwIdent = FOpen.ident;
-	wStatus = FOpen.status;
+	dwIdent = file->ident;
+	wStatus = file->status;
 	/* Verify status (20708 -> File doesn't exist) */
-	if (wStatus == 20708)
+	if (wStatus == ERR_FILE_MISSING)
 	{
-		byStep = 2;
+		return ERR_FILE_MISSING;
 	}
-	else if (wStatus == 0)
+	else if (wStatus == ERR_NONE)
 	{
-		byStep = 3;
+		return ERR_NONE;
 	}
-	else if (wStatus != 65535)
+	else if (wStatus != ERR_BUSY)
 	{
-		byErrorLevel = 1;
-		byStep = 0;
-		if (wStatus == 20799)
+		if (wStatus == ERR_GENERAL)
 		{
-			wError = FileIoGetSysError();
+			return FileIoGetSysError();
 		}
-		else
-		{
-			wError = 111;
-		}
+		return wStatus;
 	}
-	break;
+	// if misc error occurs
+	return ERR_UNDEFINED;
 }
 
 /***** Init part *****/
