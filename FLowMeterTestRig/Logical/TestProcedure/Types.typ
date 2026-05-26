@@ -1,0 +1,23 @@
+
+TYPE
+	E_PackML_State : 
+		(
+		IDLE := 1,
+		STARTING := 3,
+		EXECUTE := 6,
+		COMPLETING := 16,
+		COMPLETE := 17,
+		HOLDING := 10,
+		HELD := 11,
+		UNHOLDING := 12,
+		SUSPENDING := 13,
+		SUSPENDED := 14,
+		UNSUSPENDING := 15,
+		STOPPING := 7,
+		STOPPED := 2,
+		ABORTING := 8,
+		ABORTED := 9,
+		CLEARING := 18,
+		RESETTING := 19
+		);
+END_TYPE

@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Parameters>
+  <Connection>
+    <DeviceParameters>/IF=tcpip /LOPO=11159 /SA=1</DeviceParameters>
+    <ConnectionParameters>/COMT=2500 /RT=1000 /AM=* /SDT=5 /DAIP=172.16.100.50 /REPO=11159 /ANSL=1 /PT=11169</ConnectionParameters>
+  </Connection>
+  <AsProject>
+    <ApjFullFileName>C:\Users\sennm\Downloads\FlowMeterTestRigBR\FLowMeterTestRig\FLowMeterTestRig.apj</ApjFullFileName>
+    <ProjectName>FLowMeterTestRig</ProjectName>
+    <ActiveConfigurationName>PPC2200</ActiveConfigurationName>
+    <LicenseDataFolder>C:\Users\sennm\Downloads\FlowMeterTestRigBR\FLowMeterTestRig\Temp\Objects\PPC2200\5PPC2200_AL18_000</LicenseDataFolder>
+  </AsProject>
+  <General>
+    <DeleteParameterFile>false</DeleteParameterFile>
+  </General>
+</Parameters>

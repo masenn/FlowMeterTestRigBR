@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<disps>
+  <disp>
+    <name>Pump_PID</name>
+    <format></format>
+  </disp>
+  <disp>
+    <name>iReadData</name>
+    <format>/x</format>
+  </disp>
+</disps>

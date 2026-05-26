@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?AutomationStudio Version=3.0?>
+<Intermediate xmlns="http://br.automation.co.at/AS/VC/Intermediate">
+  <Folder Name="Bitmaps">
+    <Folder Name="POBJ">
+      <Object Name="button_scroll_left_pressed" ClsId="0x306" Version="1" TargetIndex="409" Type="GFX" RefString="Source[local].Bitmap[button_scroll_left_pressed]">
+        <UInt16 Name="Width">40</UInt16>
+        <UInt16 Name="Height">40</UInt16>
+        <UInt32 Name="BitsPerPixel">32</UInt32>
+        <Byte Name="Transparency">0</Byte>
+        <Byte Name="TargetFormat">2</Byte>
+        <UInt16 Name="Reserved">0</UInt16>
+        <Int32 Name="TransparentColor">0</Int32>
+        <Int32 Name="FillAreas">0</Int32>
+        <Binary Name="BitmapData" Encoding="Base64">iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADlSURBVFhH7dk9CoQwEIbhbL8XTqGFzSpsbSF6AysLz5DCO4gnsBKxmmXiD7hphFnhW5jAC8E0TxEiJIZehtYeYK0u4yeIY0MaP0Ec76dHnoDLssCkQGkKlKZAaQqUpkBptwLneaa2bSlJkmDtarcBx3GksizJWuv7Xr/aLcC+7ylN0wMHBXTOURRFJxwEcJomqus6gMEA8zwPUFDAqqoCFBSQj5SmaQIYDHCv6zqK4xgXyA3DQFmW4QI5PqiLosAFcvu+hPzV/SoFSlOgNAVKU6A0BUr7J+B2w88fkGLTccsP/AzxAdUc8Pym+hzoAAAAAElFTkSuQmCC</Binary>
+      </Object>
+    </Folder>
+  </Folder>
+</Intermediate>

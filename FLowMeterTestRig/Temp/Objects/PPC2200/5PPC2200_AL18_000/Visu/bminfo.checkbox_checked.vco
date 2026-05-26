@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?AutomationStudio Version=3.0?>
+<Intermediate xmlns="http://br.automation.co.at/AS/VC/Intermediate">
+  <Folder Name="Bitmaps">
+    <Folder Name="POBJ">
+      <Object Name="checkbox_checked" ClsId="0x306" Version="1" TargetIndex="441" Type="GFX" RefString="Source[local].Bitmap[checkbox_checked]">
+        <UInt16 Name="Width">32</UInt16>
+        <UInt16 Name="Height">32</UInt16>
+        <UInt32 Name="BitsPerPixel">32</UInt32>
+        <Byte Name="Transparency">0</Byte>
+        <Byte Name="TargetFormat">2</Byte>
+        <UInt16 Name="Reserved">0</UInt16>
+        <Int32 Name="TransparentColor">0</Int32>
+        <Int32 Name="FillAreas">0</Int32>
+        <Binary Name="BitmapData" Encoding="Base64">iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAECSURBVFhH7ZfdCYMwFEbvCC7gDo7gKIILuIFvvvrskyM4giM4ggsIggukfNdaNFWaH5MWmgMRjOI5qCghIqK2bUXTNF4HnHCzPI5j7HgdeZ6vEVVV8UTXdaLve29jmia+E8QbIvENQkAI+I+AeZ7lqRfOA4ZhEFEU8QfnDKcBmxzXTpJEPsw4C5DlV4/BSYCqHNweoCMHWgHjOMpTB3TlQDng+e++fJtN5EA5oCgKPucswlQOlANAlmVvETZyoBUA9hFlWVrJgXYA2EfYyIFRANgibOTAOADUdW0lB1YBdxACQsBvBXz6293NsixrAL7raZryhC+wLsT68LBCRo3PsckfOTQA9SzH0sMAAAAASUVORK5CYII=</Binary>
+      </Object>
+    </Folder>
+  </Folder>
+</Intermediate>

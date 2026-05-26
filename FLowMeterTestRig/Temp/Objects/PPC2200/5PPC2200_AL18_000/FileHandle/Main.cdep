@@ -1,0 +1,6 @@
+$(AS_CPU_PATH)/filehandle/main.c.o:
+$(AS_PROJECT_PATH)/logical/filehandler/main.c
+$(AS_GNU_INST_PATH)/4.9/i386-elf/include/bur/plctypes.h
+$(AS_GNU_INST_PATH)/4.9/i386-elf/include/bur/plc.h
+$(AS_TEMP_PATH)/includes/fileio.h
+$(AS_TEMP_PATH)/includes/runtime.h

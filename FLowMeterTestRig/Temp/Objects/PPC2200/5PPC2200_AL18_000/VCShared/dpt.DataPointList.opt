@@ -1,0 +1,13 @@
+<BuildOptions>
+  <BuildOption>
+    <SourceFile Value="C:/Users/sennm/Downloads/FlowMeterTestRigBR/FLowMeterTestRig/Physical/PPC2200/5PPC2200_AL18_000/Cpu.sw" />
+    <Query Value="/ns:SwConfiguration/ns:TaskClass/*$$Name,Source" />
+    <Xml>
+      <Task Name="Sender" Source="Cori_Meter.Sender.prg" />
+      <Task Name="Receiver" Source="Cori_Meter.Receiver.prg" />
+      <Task Name="TestProced" Source="TestProcedure.prg" />
+      <Task Name="Pump_PID" Source="Pump_PID.prg" />
+      <Task Name="FlowMeter" Source="FlowMeter.prg" />
+    </Xml>
+  </BuildOption>
+</BuildOptions>

@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?AutomationStudio Version="4.12.6.106"?>
+<ProjectOptions
+  IecNamingConventions="true"
+  IecKeywordsAsStructureMembers="false"
+  IecExtendedConstants="true"
+  LogicalDirectory="C:\Users\sennm\Downloads\FlowMeterTestRigBR\FLowMeterTestRig\Logical\"
+  TempDirectory="C:\Users\sennm\Downloads\FlowMeterTestRigBR\FLowMeterTestRig\Temp\"
+  AutomationStudioVersion="4.12.6.106"
+  AutomationStudioEdition="Standard"
+  BuildCrossReference="false"
+  ActiveConfiguration="PPC2200"
+  CreateAnsiCDeclarations="true" />

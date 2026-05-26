@@ -1,0 +1,7 @@
+VAR RETAIN
+END_VAR
+VAR CONSTANT
+END_VAR
+VAR
+	Data_Point_t : _undef_type_;	(* #1"C:/Users/sennm/Downloads/FlowMeterTestRigBR/FLowMeterTestRig/Logical/FileHandler/Main.c" #2"22" #3"9" *)
+END_VAR

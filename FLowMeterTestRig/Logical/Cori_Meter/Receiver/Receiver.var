@@ -1,0 +1,19 @@
+(********************************************************************
+ * COPYRIGHT -- Bernecker + Rainer
+ ********************************************************************
+ * Program: Sender
+ * File: Sender.var
+ * Author: Bernecker & Rainer
+ * Created: January 25, 2010
+ ********************************************************************
+ * Local variables of program Sender
+ ********************************************************************)
+VAR
+	Receiver : Receiver_typ := (0); (*local Struktur with all instances and variables*)
+END_VAR
+VAR CONSTANT
+	BUSY : UINT := 65535; (*Functionblock BUSY status*)
+END_VAR
+VAR
+	SwappedMeasurement : ARRAY[0..3] OF USINT;
+END_VAR

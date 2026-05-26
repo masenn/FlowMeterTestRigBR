@@ -1,0 +1,11 @@
+VAR_CONFIG
+	::TestProced:HMISolenoids[0] AT %QX."X20DO4332".DigitalOutput01;
+	::TestProced:HMISolenoids[1] AT %QX."X20DO4332".DigitalOutput02;
+	::TestProced:HMISolenoids[2] AT %QX."X20DO4332".DigitalOutput03;
+	::TestProced:HMISolenoids[3] AT %QX."X20DO4332".DigitalOutput04;
+	::TestProced:HMISolenoids[4] AT %QX."X20DO4332a".DigitalOutput01;
+	::TestProced:bIsolationValve AT %QX."X20DO4332a".DigitalOutput02;
+	::TestProced:bPumpRunning AT %QX."X20DO4332a".DigitalOutput03;
+	::FlowPumpFlowINT AT %QW."X20AO4622".AnalogOutput01;
+	::LiftPumpEN AT %QX."X20DO4529".DigitalOutput01;
+END_VAR

@@ -1,0 +1,9 @@
+VAR
+	Pump_PID : MTBasicsPID;
+	Config_Update : BOOL;
+	Pump_PID_Pars : MTPIDParametersType;
+END_VAR
+VAR CONSTANT
+	PUMP_MIN : REAL := 0.0; (*Minimum value to turn the pump on*)
+	PUMP_MAX_OUTPUT : REAL := 16383;
+END_VAR

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?AutomationStudio Version=3.0?>
+<Intermediate xmlns="http://br.automation.co.at/AS/VC/Intermediate">
+  <Folder Name="Bitmaps">
+    <Folder Name="POBJ">
+      <Object Name="button_radio_selected" ClsId="0x306" Version="1" TargetIndex="423" Type="GFX" RefString="Source[local].Bitmap[button_radio_selected]">
+        <UInt16 Name="Width">92</UInt16>
+        <UInt16 Name="Height">32</UInt16>
+        <UInt32 Name="BitsPerPixel">32</UInt32>
+        <Byte Name="Transparency">0</Byte>
+        <Byte Name="TargetFormat">2</Byte>
+        <UInt16 Name="Reserved">0</UInt16>
+        <Int32 Name="TransparentColor">0</Int32>
+        <Int32 Name="FillAreas">0</Int32>
+        <Binary Name="BitmapData" Encoding="Base64">iVBORw0KGgoAAAANSUhEUgAAAFwAAAAgCAYAAACfDx/iAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAALgSURBVGhD7dndS1pxGAfw314udtHV2MX+gjHGBrsY7O/YYBQVli9kUHg6YQmzkDyJTjpuJmrgKRNf0gPuYowuE6WLiC5auynXhnQ7s5ThZC8+4ycbyIOSpVfj+Vx7nge+5/g7D89hjBBCCPlPqarat7a2pgsGgwGfz5cOBAIRRVFexuPx+/i3pAuRSOS5JEmfNBpNXaPRgMlkAovFAtPT06DT6aC/vx9mZ2cr/EaEw+Fb+HrSoVQqddvlcn0cHh4Gj8cDJycnUK/XASuXy5BOp8FoNPKbUI1Go89wLXKBaDT6gIc3Pz8PhUIBZ9xSsVgEv9/Pn/p6KBRy4JqkDVVV7wqC8F2WZajVajjXC2WzWRgaGgJFUSy4NmlBkqTPkiRBpVLBWXYsmUyCVqv9nUwmH+L6pMnq6qppYGAASqUSzvDS7HY7LC4u5nEP0sRqtRZDoRDO7kqOjo4aR0sikXiK+xDGGP/784nk9PQUZ3dlZrMZvF7ve9yLMMZWVla8giDgzLoSi8XAarV+xb0IY0yW5azL5cKZdWV3d5fP5z9xL8IYC7tFcDqdOLOu5PN5Pq0A7kUYY+uvhMZk0UsHBwcUeDvv3hh7Hvjm5iaIokiBt6KqL26MjY3hzLridrthaWmJAm9HOzramJ97ga8FDAYDX2yt4z6EMQbAroWcQqFXL06+UzHo9bC9vf0E9yJ/ZVRbH99753I5nN+lnJ+fg16vh6Dv9dbe3t4d3Ic08fv9CT5ZHB8f4xw7cnZ2BnNzczAzM1OmDxIdcjqdHyYnJ2F/f7/lR4d2+LntcDhgYmLiRyqVeoTrkjZsNtt1WZZzfHMYj8c72ovv7Ow0jhFRFL/FYrHHuCbpgKIoZkEQanza4OMdfxH+W91Wq1U4PDxs7EumpqaAn/0ej2eLf2zGdcglZDKZm4qi2BcWFr6Mj4//4k/94OBg4+PxyMhI3WKxlJaXl99ubGzcw9cSQgghpAf+AMQsAHCOJCTsAAAAAElFTkSuQmCC</Binary>
+      </Object>
+    </Folder>
+  </Folder>
+</Intermediate>

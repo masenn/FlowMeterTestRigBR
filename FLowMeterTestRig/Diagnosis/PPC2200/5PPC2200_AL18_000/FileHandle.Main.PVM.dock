@@ -1,0 +1,8 @@
+WATCH Ver=2.00 PLCName=PLC1 CPUName=CPU TaskName=FileHandle 
+Position X=0 Y=0 Width=0 Height=0 TabWidth Name=250 Type=0 Scope=0 Force=0 Index=4 ASCIIString=0
+                                    name                                     type force                                                            value level type len format place expand specs
+                                  byStep                                    USINT    0 "                                                               0"    0    5    1   10    1    0         
+                            byErrorLevel                                    USINT    0 "                                                               2"    0    5    1   10    1    0         
+                                     bOK                                     BOOL    0 "                                                           FALSE"    0    1    1    2    1    0         
+                                  wError                                     UINT    0 "                                                             222"    0    6    1   10    1    0         
+                                 wStatus                                     UINT    0 "                                                           20723"    0    6    1   10    1    0         

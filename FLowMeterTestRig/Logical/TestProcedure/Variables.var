@@ -1,0 +1,63 @@
+VAR
+	tonStopDelay : TON; (* drain / bleed time              *) (* ---- Diagnostics ---- *)
+	tonStartDelay : TON; (* settling time after valve open  *)
+	i_current_flow : INT;
+	tonRampTimeout : TON; (* max time to reach set point     *)
+	TargetTempOK : BOOL; (*TRUE when target temp is within range of actual temp*)
+	TargetTempFloat : REAL; (*Target Temperature for fluid set by HMI*)
+	sStatusMsg : STRING[255] := '';
+END_VAR
+(*Insert your comment here.*)
+(*Insert your comment here.*)
+VAR
+	rTargetFlowRate : REAL := 0.0; (* L/min – set point              *)
+	rRef_Accumulator : REAL := 0.0; (* ---- Execute sub-step sequencer ---- *)
+	rFlowError_Pct : REAL := 0.0; (* % error DUT vs reference       *)
+	rDUT_FlowRate : REAL := 0.0; (* L/min – from DUT               *)
+	rDUT_Accumulator : REAL := 0.0;
+	rActualFlowRate : REAL := 0.0; (* L/min – from reference meter   *)
+	rAcceptableTol_Pct : REAL := 0.5; (* acceptance band ±%             *)
+	nStabilityTarget : UINT := 50; (* scan cycles at stable flow     *)
+	nStabilityCount : UINT := 0;
+	nExecStep : UINT := 0; (* ---- Timers ---- *)
+	nAcqSampleTarget : UINT := 100; (* samples to acquire             *)
+	nAcqSampleCount : UINT := 0;
+	HMISolenoids : ARRAY[0..4] OF BOOL;
+	FluidTempScale : LCRScal;
+	eState : E_PackML_State := STOPPED;
+	ePrevState : E_PackML_State := STOPPED;
+	DUTFlowRate : ARRAY[1..5] OF REAL; (*Array of current sample flow rates*)
+	dtStateEntryTime : DATE_AND_TIME;
+	CurrentSample : INT; (*Integer 1-5 dictating which sample is active*)
+	cmdUnsuspend : BOOL := FALSE;
+	cmdUnhold : BOOL := FALSE;
+	cmdSuspend : BOOL := FALSE;
+	cmdStop : BOOL := FALSE;
+	cmdStart : BOOL := FALSE;
+	cmdReset : BOOL := FALSE; (* ---- Internal state-complete flags ---- *)
+	cmdHold : BOOL := FALSE;
+	cmdClear : BOOL := FALSE;
+	CmdChangeSample : BOOL; (*Command to change sample*)
+	cmdAbort : BOOL := FALSE;
+	bUnsuspendingDone : BOOL := FALSE;
+	bUnholdingDone : BOOL := FALSE;
+	bTestPass : BOOL := FALSE;
+	bSuspendingDone : BOOL := FALSE;
+	bStoppingDone : BOOL := FALSE;
+	bStateChanged : BOOL; (* ---- Commands (from HMI / supervisory) ---- *)
+	bStartingDone : BOOL := FALSE;
+	bResettingDone : BOOL := FALSE; (* ---- Flow-Rig Process Variables ---- *)
+	bPumpRunning : BOOL := FALSE; (*Lift Pump ON*)
+	bIsolationValve : BOOL := FALSE; (* TRUE = open                    *)
+	bHoldingDone : BOOL := FALSE;
+	bFlowStable : BOOL := FALSE;
+	bExecuteDone : BOOL := FALSE;
+	bCompletingDone : BOOL := FALSE;
+	bClearingDone : BOOL := FALSE;
+	bAcquisitionDone : BOOL := FALSE;
+	bAbortingDone : BOOL := FALSE;
+	AllSamplesTested : BOOL; (*TRUE when all samples have been tested*)
+	AirTempScale : LCRScal;
+	kP_Pump : REAL;
+	ActualSolenoids : ARRAY[0..4] OF BOOL; (*fbMeters : ARRAY[0..4] OF FB_Meter;*)
+END_VAR
