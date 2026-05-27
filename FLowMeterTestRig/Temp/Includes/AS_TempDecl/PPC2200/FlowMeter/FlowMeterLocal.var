@@ -1,7 +1,0 @@
-VAR RETAIN
-END_VAR
-VAR CONSTANT
-END_VAR
-VAR
-	duts : ARRAY[0..4] OF DUT_Slot_t;	(* #1"C:/Users/sennm/Downloads/FlowMeterTestRigBR/FLowMeterTestRig/Logical/FlowMeter/Main.c" #2"54" #3"19" *)
-END_VAR

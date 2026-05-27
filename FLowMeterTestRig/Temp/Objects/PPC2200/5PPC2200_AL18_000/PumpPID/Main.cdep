@@ -1,2 +1,0 @@
-$(AS_CPU_PATH)/pumppid/main.c.o:
-$(AS_PROJECT_PATH)/logical/pumppid/main.c

@@ -1,5 +1,0 @@
-$(AS_PROJECT_PATH)/Logical/Libraries/dvframe/dvframe.fun
-$(AS_PROJECT_PATH)/Logical/Libraries/asstring/asstring.fun
-$(AS_PROJECT_PATH)/Logical/Cori_Meter/Sender/Sender.var
-$(AS_PROJECT_PATH)/Logical/Cori_Meter/Sender/Sender.typ
-$(AS_PROJECT_PATH)/Logical/Libraries/dvframe/dvframe.typ

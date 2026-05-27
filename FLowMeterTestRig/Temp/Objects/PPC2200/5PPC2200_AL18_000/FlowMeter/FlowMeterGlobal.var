@@ -1,7 +1,0 @@
-VAR RETAIN
-END_VAR
-VAR CONSTANT
-END_VAR
-VAR
-	dut_registers : ARRAY[0..4,0..31] OF USINT;	(* #1"C:/Users/sennm/Downloads/FlowMeterTestRigBR/FLowMeterTestRig/Logical/FlowMeter/Main.c" #2"56" #3"17" *)
-END_VAR

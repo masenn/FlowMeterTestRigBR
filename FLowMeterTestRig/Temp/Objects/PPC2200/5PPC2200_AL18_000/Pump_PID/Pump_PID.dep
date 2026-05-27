@@ -1,5 +1,0 @@
-$(AS_PROJECT_PATH)/Logical/Libraries/MTBasics/MTBasics.fun
-$(AS_PROJECT_PATH)/Logical/Libraries/MTTypes/MTTypes.typ
-$(AS_PROJECT_PATH)/Logical/Libraries/MTBasics/MTBasics.typ
-$(AS_PROJECT_PATH)/Logical/Pump_PID/Variables.var
-$(AS_PROJECT_PATH)/Logical/Global.var
