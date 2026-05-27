@@ -481,6 +481,9 @@ PROGRAM _CYCLIC
 	IF NOT bIsolationValve THEN
 		cmdFlowPumpEN := FALSE;
 	END_IF		
+	IF FlowPumpFlowINT > 13000 AND Cori_Measurement < 500.0 THEN
+		cmdFlowPumpEN := FALSE;
+		END_IF
 END_PROGRAM
 
 PROGRAM _EXIT

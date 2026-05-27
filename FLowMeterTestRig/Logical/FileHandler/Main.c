@@ -3,6 +3,7 @@
 #include <brsystem.h>
 //#include "Global.h"
 #include <fileio.h>
+#include <stdbool.h>
 
 
 #define ERR_FILE_MISSING	20708
@@ -11,49 +12,13 @@
 #define ERR_GENERAL			20799
 #define ERR_UNDEFINED		-1
 
-/***** Variable declaration *****/
-_LOCAL BOOL bOK;
-_LOCAL USINT byStep, byErrorLevel;
-_LOCAL USINT byReadData[100], byWriteData[100];
-_LOCAL UINT wStatus, wError;
-_LOCAL UDINT dwIdent;
-_LOCAL FileOpen_typ FOpen;
-_LOCAL FileClose_typ FClose;
-_LOCAL FileCreate_typ FCreate;
-_LOCAL FileRead_typ FRead;
-_LOCAL FileWrite_typ FWrite;
-_LOCAL FileDelete_typ FDelete;
+#define FILE_SYSTEM_NAME "USER"
 
-typedef struct {
-	USINT field;
-}Data_Point_t; 
+int test = 0;
 
-_GLOBAL Data_Point_t test;
 
-/*
- * File Handling
- */
-
-bool file_exists() 
+int get_error_code(int wStatus)
 {
-
-}
-
-int open_file(FOpen* file, char* file_name)
-{
-	/* Initialize file open structrue */
-	file->enable = 1;
-	file->pDevice = (UDINT)"USER";
-	file->pFile = (UDINT)file_name;
-	file->mode = fiREAD_WRITE;                        /* Read and write access */
-
-	/* Call FUB */
-	FileOpen(file);
-
-	/* Get FBK output information */
-	dwIdent = file->ident;
-	wStatus = file->status;
-	/* Verify status (20708 -> File doesn't exist) */
 	if (wStatus == ERR_FILE_MISSING)
 	{
 		return ERR_FILE_MISSING;
@@ -68,214 +33,103 @@ int open_file(FOpen* file, char* file_name)
 		{
 			return FileIoGetSysError();
 		}
-		return wStatus;
 	}
-	// if misc error occurs
-	return ERR_UNDEFINED;
+	return wStatus;
 }
 
-/***** Init part *****/
-_INIT void Init(void)
+bool file_exists(char* file_name) 
 {
-	int i;
-	/* Initialize variables */
-	bOK = 0;
-	byStep = 1;
-	byErrorLevel = 0;
-	/* Initialize read and write data */
-	for (i = 0; i < 100; i ++)
-	{
-		byWriteData[i]  = i + 1;
-		byReadData[i]   = 0;
-	}
+	FileOpen_typ file = {0};
+	/* Initialize file open structrue */
+	file.enable = 1;
+	file.pDevice = (UDINT)FILE_SYSTEM_NAME;
+	file.pFile = (UDINT)file_name;
+	file.mode = fiREAD_ONLY;                        /* Read and write access */
+
+	/* Call FUB */
+	FileOpen(&file);
+	return (file.status != ERR_FILE_MISSING && file.status == 0 );
+}
+
+/**
+ * @brief opens a file on the local file system
+ * @param file_name: the file name to be read, path included
+ * @param fp: the file pointer to used to open the file
+ */
+int open_file(char* file_name, UDINT* fp)
+{
+
+	FileOpen_typ file = {0};
+	/* Initialize file open structrue */
+	file.enable = 1;
+	file.pDevice = (UDINT)FILE_SYSTEM_NAME;
+	file.pFile = (UDINT)file_name;
+	file.mode = fiREAD_WRITE;                        /* Read and write access */
+
+	/* Call FUB */
+	FileOpen(&file);
+
+	/* Get FBK output information */
+	*fp = file.ident;
+	return get_error_code(file.status);
+	
+}
+
+int create_file(char* file_name,UDINT* fp)
+{
+	FileCreate_typ file_create = { 0 };
+	/* Initialize file create structure */
+	file_create.enable    = 1;
+	file_create.pDevice = (UDINT) "USER";
+	file_create.pFile   = (UDINT) "TestFile.csv";
+	/* Call FUB */
+	FileCreate(&file_create);
+	/* Get output information of FBK */
+	*fp = file_create.ident;
+	return get_error_code(file_create.status);
+}
+
+int write_file(char* file_name,UDINT*fp, char* write_data,USINT write_len) 
+{
+	FileWrite_typ file_write = {0};
+	file_write.enable     = 1;
+	// dereference the pointer to the file
+	file_write.ident    = *fp;
+	file_write.offset   = 0;
+	file_write.pSrc     = (UDINT) write_data;
+	file_write.len      = write_len;
+
+	/* Call FBK */
+	FileWrite(&file_write);
+	return get_error_code(file_write.status);
+}
+
+int close_file(UDINT* fp)
+{
+	/* Initialize file close structure */
+	FileClose_typ file_close = {0};
+	file_close.enable     = 1;
+	file_close.ident    = *fp;
+				
+	/* Call FBK */
+	FileClose(&file_close);
+}
+
+int delete_file(char* file_name)
+{
+	FileDelete_typ file_delete;
+	/* Initialize file delete structure */
+	file_delete.enable    = 1;
+	file_delete.pDevice = (UDINT) FILE_SYSTEM_NAME;
+	file_delete.pName   = (UDINT) file_name;
+	/* Call FBK */
+	FileDelete(&file_delete);
+	return get_error_code(file_delete.status);
 }
  
 /***** Cyclic part *****/
 _CYCLIC void Cyclic(void)
 {
-	switch (byStep)
-	{
-		case 0: /**** Error step ****/
-			bOK = 0;
-			break;
-		case 1: /**** Try to open existing file ****/
-			/* Initialize file open structrue */
-			FOpen.enable      = 1;
-			FOpen.pDevice   = (UDINT) "USER";
-			FOpen.pFile     = (UDINT) "TestFile.csv";
-			FOpen.mode      = fiREAD_WRITE;                        /* Read and write access */
-
-			/* Call FUB */
-			FileOpen(&FOpen);
-
-			/* Get FBK output information */
-			dwIdent = FOpen.ident;
-			wStatus = FOpen.status;
-			/* Verify status (20708 -> File doesn't exist) */
-			if (wStatus == 20708)
-			{
-				byStep = 2;
-			}
-			else if (wStatus == 0)
-			{
-				byStep = 3;
-			}
-			else if (wStatus != 65535)
-			{
-				byErrorLevel = 1;
-				byStep = 0;
-				if (wStatus == 20799)
-				{
-					wError = FileIoGetSysError();
-				}
-				else 
-				{
-					wError = 111;
-				}
-			}
-			break;
-		case 2: /**** Create file ****/
-			/* Initialize file create structure */
-			FCreate.enable    = 1;
-			FCreate.pDevice = (UDINT) "USER";
-			FCreate.pFile   = (UDINT) "TestFile.csv";
-			/* Call FUB */
-			FileCreate(&FCreate);
-			/* Get output information of FBK */
-			dwIdent = FCreate.ident;
-			wStatus = FCreate.status;
-			/* Verify status */
-			if (wStatus == 0)
-			{
-				byStep = 3;
-			}
-			else if (wStatus != 65535)
-			{
-				byErrorLevel = 2;
-				byStep = 0;
-                                
-				if (wStatus == 20799)
-				{
-					wError = FileIoGetSysError();
-				}
-			}
-			else
-			{
-				wError = 222;
-			}
-			break;
-
-		case 3: /**** Write data to file ****/
-			/* Initialize file write structure */
-			FWrite.enable     = 1;
-			FWrite.ident    = dwIdent;
-			FWrite.offset   = 0;
-			FWrite.pSrc     = (UDINT) &byWriteData[0];
-			FWrite.len      = sizeof (byWriteData);
-
-			/* Call FBK */
-			FileWrite(&FWrite);
-			/* Get status */
-			wStatus = FWrite.status;
-			/* Verify status */
-			if (wStatus == 0)
-			{
-				byStep = 4;
-			}
-			else if (wStatus != 65535)
-			{
-				byErrorLevel = 3;
-				byStep = 0;
-
-				if (wStatus == 20799)
-				{
-					wError = FileIoGetSysError();
-				}
-			}
-			else
-			{
-				wError = 333;
-			}
-			break;
-		case 4: /**** Read data from file ****/
-			/* Initialize file read structure */
-			FRead.enable      = 1;
-			FRead.ident     = dwIdent;
-			FRead.offset    = 0;
-			FRead.pDest     = (UDINT) &byReadData[0];
-			FRead.len       = sizeof (byReadData);
-			/* Call FBK */
-			FileRead(&FRead);
-			/* Get status */
-			wStatus = FRead.status;
-			/* Verify status */
-			if (wStatus == 0)
-			{
-				byStep = 5;
-			}
-			else if (wStatus != 65535)
-			{
-				byErrorLevel = 4;
-				byStep = 0;
-				if (wStatus == 20799)
-				{
-					wError = FileIoGetSysError();
-				}
-			}
-                        
-			break;
-		case 5: /**** Close file ****/
-			/* Initialize file close structure */
-			FClose.enable     = 1;
-			FClose.ident    = dwIdent;
-                        
-			/* Call FBK */
-			FileClose(&FClose);
-
-			/* Get status */
-			wStatus = FClose.status;
-
-			/* Verify status */
-			if (wStatus == 0)
-			{
-				byStep = 1;
-			}
-			else if (wStatus != 65535)
-			{
-				byErrorLevel = 5;
-				byStep = 0;
-				if (wStatus == 20799)
-				{
-					wError = FileIoGetSysError();
-				}
-			}
-                        
-			break;
-		case 6: /**** Delete file ****/
-			/* Initialize file delete structure */
-			FDelete.enable    = 1;
-			FDelete.pDevice = (UDINT) "HARDDISK";
-			FDelete.pName   = (UDINT) "TestFile.csv";
-			/* Call FBK */
-			FileDelete(&FDelete);
-			/* Get status */
-			wStatus = FDelete.status;
-			/* Verify status */
-			if (wStatus == 0)
-			{
-				bOK = 1;
-				byStep = 7;
-			}
-			else if (wStatus != 65535)
-			{
-				byErrorLevel = 6;
-				byStep = 0;
-				if (wStatus == 20799)
-				{
-					wError = FileIoGetSysError();
-				}
-			}
-			break;
-	}
-
+	char* file = "Test.csv";
+	test = file_exists(file);
 }

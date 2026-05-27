@@ -1,6 +1,7 @@
 VAR
 	tonStopDelay : TON; (* drain / bleed time              *) (* ---- Diagnostics ---- *)
 	tonStartDelay : TON; (* settling time after valve open  *)
+	iFlowInsufficient : USINT;
 	i_current_flow : INT;
 	tonRampTimeout : TON; (* max time to reach set point     *)
 	TargetTempOK : BOOL; (*TRUE when target temp is within range of actual temp*)
