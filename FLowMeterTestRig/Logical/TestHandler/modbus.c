@@ -1,13 +1,6 @@
 #include "modbus.h"
 
-_LOCAL DUT_Slot_t duts[5];
-
-_GLOBAL USINT	dut_registers[5][32];
-
-
-
-
-void init_DUT(DUT_Slot_t* dut, const char* device_str,int address)
+void init_DUT(DUT_Slot_t* dut, char* device_str,int address)
 {
 
 	
@@ -119,7 +112,6 @@ void serve_DUT(DUT_Slot_t* dut)
 		dut->MClose.enable   = 1;
 		dut->MClose.ident    = dut->ident;
 		MBMClose(&(dut->MClose));
-		int statusMClose = dut->MClose.status;
 		if (!dut->statusMClose)
 		{
 			dut->ident   = 0;

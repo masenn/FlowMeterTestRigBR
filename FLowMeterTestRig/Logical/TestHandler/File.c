@@ -5,7 +5,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "File.h"
+#include "file.h"
+
+static uint32_t write_offset = 0;
 
 
 static int get_error_code(int wStatus)
@@ -51,8 +53,8 @@ bool file_exists(File_t* file)
 	/* Call FUB */
 	FileOpen(&file_open);
 	bool ret = (file_open.status != ERR_FILE_MISSING && file_open.status == 0 );
-	if(ret) close_file(&(file_open.ident));
-	return ;
+	if(ret) close_file(file);
+	return ret;
 }
 
 /**
@@ -74,8 +76,9 @@ int open_file(File_t* file)
 	FileOpen(&file_open);
 
 	/* Get FBK output information */
-	file->file_name = file_open.ident;
+	file->fp = file_open.ident;
     if (file_open.status == 0) file->is_open = true;
+
 	return get_error_code(file_open.status);
 	
 }
@@ -101,12 +104,12 @@ int write_file(File_t* file, char* write_data,uint16_t write_len)
 	file_write.enable     = 1;
 	// dereference the pointer to the file
 	file_write.ident    = file->fp;
-	file_write.offset   = 0;
+	file_write.offset   = write_offset;
 	file_write.pSrc     = (UDINT) write_data;
 	file_write.len      = write_len;
-
 	/* Call FBK */
 	FileWrite(&file_write);
+	if(!file_write.status) write_offset += write_len;
 	return get_error_code(file_write.status);
 }
 

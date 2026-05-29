@@ -8,13 +8,12 @@
   <TaskClass Name="Cyclic#2" />
   <TaskClass Name="Cyclic#3" />
   <TaskClass Name="Cyclic#4">
-    <Task Name="TestProced" Source="TestProcedure.prg" Memory="UserROM" Language="IEC" Debugging="true" />
     <Task Name="Pump_PID" Source="Pump_PID.prg" Memory="UserROM" Language="IEC" Debugging="true" />
+    <Task Name="TestHandle" Source="TestHandler.prg" Memory="UserROM" Language="ANSIC" Debugging="true" />
   </TaskClass>
   <TaskClass Name="Cyclic#5" />
   <TaskClass Name="Cyclic#6">
     <Task Name="FlowMeter" Source="FlowMeter.prg" Memory="UserROM" Language="ANSIC" Debugging="true" />
-    <Task Name="TestHandle" Source="TestHandler.prg" Memory="UserROM" Language="ANSIC" Debugging="true" />
   </TaskClass>
   <TaskClass Name="Cyclic#7" />
   <TaskClass Name="Cyclic#8" />

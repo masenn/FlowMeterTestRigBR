@@ -147,23 +147,6 @@
           <Property Name="Top" Value="80"/>
           <Property Name="Width" Value="148"/>
         </Control>
-        <Control ClassId="0x00001007" Name="Numeric_1">
-          <Property Name="ControlID" Value="0"/>
-          <Property Name="Description" Value=""/>
-          <Property Name="Height" Value="48"/>
-          <Property Name="Left" Value="349"/>
-          <Property Name="MaxDatapoint" Value="None"/>
-          <Property Name="MaxValue" Value="3000"/>
-          <Property Name="MinDatapoint" Value="None"/>
-          <Property Name="MinValue" Value="0"/>
-          <Property Name="SimulationValue" Value="0"/>
-          <Property Name="StyleClass" Value="Source[relative:StyleGroup].StyleClass[Input]"/>
-          <Property Name="TeachDatapoint" Value="None"/>
-          <Property Name="Top" Value="76"/>
-          <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TargetFlow]"/>
-          <Property Name="ValueMode" Value="Standard"/>
-          <Property Name="Width" Value="167"/>
-        </Control>
         <Control ClassId="0x00001004" Name="Text_2">
           <Property Name="ControlID" Value="0"/>
           <Property Name="Description" Value=""/>
@@ -192,7 +175,7 @@
           <Property Name="StyleClass" Value="Source[relative:StyleGroup].StyleClass[Default]"/>
           <Property Name="TeachDatapoint" Value="None"/>
           <Property Name="Top" Value="135"/>
-          <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.Cori_Measurement]"/>
+          <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.flow_actual]"/>
           <Property Name="ValueMode" Value="Standard"/>
           <Property Name="Width" Value="167"/>
         </Control>
@@ -511,45 +494,8 @@
           <Property Name="SimulationValue" Value="0"/>
           <Property Name="StyleClass" Value="Source[relative:StyleGroup].StyleClass[Default]"/>
           <Property Name="Top" Value="267"/>
-          <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.Cori_Measurement]"/>
+          <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.flow_actual]"/>
           <Property Name="Width" Value="343"/>
-        </Control>
-        <Control ClassId="0x0000100B" Name="String_1">
-          <Property Name="ControlID" Value="0"/>
-          <Property Name="Description" Value=""/>
-          <Property Name="Height" Value="30"/>
-          <Property Name="Left" Value="481"/>
-          <Property Name="SimulationValue" Value="ABC"/>
-          <Property Name="StyleClass" Value="Source[relative:StyleGroup].StyleClass[Default]"/>
-          <Property Name="Top" Value="600"/>
-          <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.FlowMeter.device]"/>
-          <Property Name="Width" Value="310"/>
-        </Control>
-        <Control ClassId="0x00001007" Name="Numeric_7">
-          <Property Name="ControlID" Value="0"/>
-          <Property Name="Description" Value=""/>
-          <Property Name="Height" Value="30"/>
-          <Property Name="Input" Value="True"/>
-          <Property Name="InputCancel" Value="Lost Focus"/>
-          <Property Name="InputComma" Value="Explicit"/>
-          <Property Name="InputConfirm" Value="Enter"/>
-          <Property Name="InputMinus" Value="Normal"/>
-          <Property Name="InputNext" Value="Enter"/>
-          <Property Name="InputStart" Value="Any Key"/>
-          <Property Name="InputTouchpad" Value="Source[local].TouchPad[NumPad]"/>
-          <Property Name="InputUpDown" Value="Disabled"/>
-          <Property Name="Left" Value="482"/>
-          <Property Name="MaxDatapoint" Value="None"/>
-          <Property Name="MaxValue" Value="2000"/>
-          <Property Name="MinDatapoint" Value="None"/>
-          <Property Name="MinValue" Value="0"/>
-          <Property Name="SimulationValue" Value="0"/>
-          <Property Name="StyleClass" Value="Source[relative:StyleGroup].StyleClass[Default]"/>
-          <Property Name="TeachDatapoint" Value="None"/>
-          <Property Name="Top" Value="649"/>
-          <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.FlowMeter.timeout]"/>
-          <Property Name="ValueMode" Value="Standard"/>
-          <Property Name="Width" Value="30"/>
         </Control>
         <Control ClassId="0x00001004" Name="Text_7">
           <Property Name="ControlID" Value="0"/>
@@ -615,7 +561,7 @@
           <Property Name="StyleClass" Value="Source[relative:StyleGroup].StyleClass[Default]"/>
           <Property Name="TeachDatapoint" Value="None"/>
           <Property Name="Top" Value="458"/>
-          <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.FlowPumpFlowINT]"/>
+          <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.pump_output]"/>
           <Property Name="ValueMode" Value="Standard"/>
           <Property Name="Width" Value="171"/>
         </Control>
@@ -754,6 +700,32 @@
           <Property Name="VirtualKey" Value="Source[local].VirtualKey[%embVirtualKey_19]"/>
           <Property Name="Width" Value="202"/>
         </Control>
+        <Control ClassId="0x00001007" Name="Numeric_1">
+          <Property Name="ControlID" Value="0"/>
+          <Property Name="Description" Value=""/>
+          <Property Name="Height" Value="30"/>
+          <Property Name="Input" Value="True"/>
+          <Property Name="InputCancel" Value="Lost Focus"/>
+          <Property Name="InputComma" Value="Explicit"/>
+          <Property Name="InputConfirm" Value="Enter"/>
+          <Property Name="InputMinus" Value="Normal"/>
+          <Property Name="InputNext" Value="Enter"/>
+          <Property Name="InputStart" Value="Any Key"/>
+          <Property Name="InputTouchpad" Value="Source[local].TouchPad[NumPad]"/>
+          <Property Name="InputUpDown" Value="Disabled"/>
+          <Property Name="Left" Value="348"/>
+          <Property Name="MaxDatapoint" Value="None"/>
+          <Property Name="MaxValue" Value="4000"/>
+          <Property Name="MinDatapoint" Value="None"/>
+          <Property Name="MinValue" Value="0"/>
+          <Property Name="SimulationValue" Value="0"/>
+          <Property Name="StyleClass" Value="Source[relative:StyleGroup].StyleClass[Default]"/>
+          <Property Name="TeachDatapoint" Value="None"/>
+          <Property Name="Top" Value="87"/>
+          <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.target_flow]"/>
+          <Property Name="ValueMode" Value="Standard"/>
+          <Property Name="Width" Value="172"/>
+        </Control>
       </Controls>
       <KeyMapping>
         <VirtualKey Name="%embVirtualKey_12">
@@ -768,7 +740,7 @@
               <Property Name="Name" Value="Action_0"/>
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
-              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestProcedure.HMISolenoids[1]]"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_solenoids[1]]"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>
@@ -784,7 +756,7 @@
               <Property Name="Name" Value="Action_0"/>
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
-              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestProcedure.HMISolenoids[2]]"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_solenoids[2]]"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>
@@ -800,7 +772,7 @@
               <Property Name="Name" Value="Action_0"/>
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
-              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestProcedure.HMISolenoids[3]]"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_solenoids[3]]"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>
@@ -816,7 +788,7 @@
               <Property Name="Name" Value="Action_0"/>
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
-              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestProcedure.HMISolenoids[4]]"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_solenoids[4]]"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>
@@ -832,7 +804,7 @@
               <Property Name="Name" Value="Action_0"/>
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
-              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestProcedure.HMISolenoids[0]]"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_solenoids[0]]"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>
@@ -848,7 +820,7 @@
               <Property Name="Name" Value="Action_0"/>
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
-              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestProcedure.bIsolationValve]"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.enable_isolation_valve]"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>
@@ -864,7 +836,7 @@
               <Property Name="Name" Value="Action_0"/>
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
-              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.LiftPumpEN]"/>
+              <Property Name="ValueDatapoint" Value="None"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>
@@ -880,7 +852,7 @@
               <Property Name="Name" Value="Action_0"/>
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
-              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.cmdFlowPumpEN]"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.enable_pump]"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>
@@ -911,29 +883,17 @@
     </Layer>
   </Layers>
   <MovementOrder>
-    <MovementEntry Control="Source[embedded].Layer[FrameLayer].Control[Numeric_1]">
-      <Property Name="Down" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_7]"/>
-      <Property Name="Left" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_6]"/>
-      <Property Name="Right" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_9]"/>
-      <Property Name="Up" Value="Source[embedded].Layer[FrameLayer].Control[Slider_1]"/>
-    </MovementEntry>
     <MovementEntry Control="Source[embedded].Layer[FrameLayer].Control[Numeric_6]">
       <Property Name="Down" Value="Source[embedded].Layer[FrameLayer].Control[Slider_1]"/>
       <Property Name="Left" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_1]"/>
-      <Property Name="Right" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_7]"/>
+      <Property Name="Right" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_9]"/>
       <Property Name="Up" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_1]"/>
     </MovementEntry>
     <MovementEntry Control="Source[embedded].Layer[FrameLayer].Control[Slider_1]">
       <Property Name="Down" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_1]"/>
       <Property Name="Left" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_1]"/>
       <Property Name="Right" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_1]"/>
-      <Property Name="Up" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_7]"/>
-    </MovementEntry>
-    <MovementEntry Control="Source[embedded].Layer[FrameLayer].Control[Numeric_7]">
-      <Property Name="Down" Value="Source[embedded].Layer[FrameLayer].Control[Slider_1]"/>
-      <Property Name="Left" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_1]"/>
-      <Property Name="Right" Value="Source[embedded].Layer[FrameLayer].Control[Slider_1]"/>
-      <Property Name="Up" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_1]"/>
+      <Property Name="Up" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_9]"/>
     </MovementEntry>
     <MovementEntry Control="Source[embedded].Layer[FrameLayer].Control[Numeric_8]">
       <Property Name="Down" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_9]"/>
@@ -959,22 +919,26 @@
       <Property Name="Right" Value="Source[embedded].Layer[FrameLayer].Control[Slider_1]"/>
       <Property Name="Up" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_1]"/>
     </MovementEntry>
+    <MovementEntry Control="Source[embedded].Layer[FrameLayer].Control[Numeric_1]">
+      <Property Name="Down" Value="Source[embedded].Layer[FrameLayer].Control[Slider_1]"/>
+      <Property Name="Left" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_6]"/>
+      <Property Name="Right" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_9]"/>
+      <Property Name="Up" Value="Source[embedded].Layer[FrameLayer].Control[Slider_1]"/>
+    </MovementEntry>
   </MovementOrder>
   <TabSequence>
-    <TabSeqItem Index="0" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_1]"/>
-    <TabSeqItem Index="1" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_2]"/>
-    <TabSeqItem Index="2" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_3]"/>
-    <TabSeqItem Index="3" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_4]"/>
-    <TabSeqItem Index="4" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_5]"/>
-    <TabSeqItem Index="5" Value="Source[local].Layer[globalArea].Control[String_1]"/>
-    <TabSeqItem Index="6" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_6]"/>
-    <TabSeqItem Index="7" Value="Source[embedded].Layer[FrameLayer].Control[Slider_1]"/>
-    <TabSeqItem Index="8" Value="Source[embedded].Layer[FrameLayer].Control[String_1]"/>
-    <TabSeqItem Index="9" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_7]"/>
-    <TabSeqItem Index="10" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_8]"/>
-    <TabSeqItem Index="11" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_9]"/>
-    <TabSeqItem Index="12" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_10]"/>
-    <TabSeqItem Index="13" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_11]"/>
-    <TabSeqItem Index="14" Value="Source[embedded].Layer[FrameLayer].Control[Trend_1]"/>
+    <TabSeqItem Index="0" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_2]"/>
+    <TabSeqItem Index="1" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_3]"/>
+    <TabSeqItem Index="2" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_4]"/>
+    <TabSeqItem Index="3" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_5]"/>
+    <TabSeqItem Index="4" Value="Source[local].Layer[globalArea].Control[String_1]"/>
+    <TabSeqItem Index="5" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_6]"/>
+    <TabSeqItem Index="6" Value="Source[embedded].Layer[FrameLayer].Control[Slider_1]"/>
+    <TabSeqItem Index="7" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_8]"/>
+    <TabSeqItem Index="8" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_9]"/>
+    <TabSeqItem Index="9" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_10]"/>
+    <TabSeqItem Index="10" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_11]"/>
+    <TabSeqItem Index="11" Value="Source[embedded].Layer[FrameLayer].Control[Trend_1]"/>
+    <TabSeqItem Index="12" Value="Source[embedded].Layer[FrameLayer].Control[Numeric_1]"/>
   </TabSequence>
 </Page>

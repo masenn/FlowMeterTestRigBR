@@ -1,8 +1,3 @@
-
 VAR
-
-END_VAR
-
-VAR CONSTANT
-
+	dut_solenoids : ARRAY[0..4] OF BOOL;
 END_VAR

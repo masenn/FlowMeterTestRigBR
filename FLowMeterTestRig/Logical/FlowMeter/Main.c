@@ -5,7 +5,7 @@
 
 unsigned long bur_heap_size = 0x2000;
 
-_LOCAL DUT_Slot_t duts[5];
+//_LOCAL DUT_Slot_t duts[5];
 
 _GLOBAL USINT	dut_registers[5][32];
 
@@ -58,19 +58,19 @@ typedef struct {
 
 _INIT void modbus_init(void)
 {
-	init_DUT(&duts[0],"SL1.IF1.ST1.IF1.ST7.IF1",9);
-	init_DUT(&duts[1],"SL1.IF1.ST1.IF1.ST8.IF1",9);
-	init_DUT(&duts[2],"SL1.IF1.ST1.IF1.ST9.IF1",9);
-	init_DUT(&duts[3],"SL1.IF1.ST1.IF1.ST10.IF1",9);
-	init_DUT(&duts[4],"SL1.IF1.ST1.IF1.ST11.IF1",9);
+	// init_DUT(&duts[0],"SL1.IF1.ST1.IF1.ST7.IF1",9);
+	// init_DUT(&duts[1],"SL1.IF1.ST1.IF1.ST8.IF1",9);
+	// init_DUT(&duts[2],"SL1.IF1.ST1.IF1.ST9.IF1",9);
+	// init_DUT(&duts[3],"SL1.IF1.ST1.IF1.ST10.IF1",9);
+	// init_DUT(&duts[4],"SL1.IF1.ST1.IF1.ST11.IF1",9);
 
 
 }
 
 _CYCLIC void modbus_cyclic(void)
 {
-	int i;
-	for(i = 0; i < 5;i++) serve_DUT(&duts[i]);
+	// int i;
+	// for(i = 0; i < 5;i++) serve_DUT(&duts[i]);
 }
 
 _EXIT void modbus_exit(void)

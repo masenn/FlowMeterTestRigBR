@@ -117,6 +117,6 @@ PROGRAM _CYCLIC
 	SwappedMeasurement[1] := Receiver.receive_data[10];
 	SwappedMeasurement[2] := Receiver.receive_data[9];
 	SwappedMeasurement[3] := Receiver.receive_data[8];
-	memcpy(ADR(Cori_Measurement),ADR(SwappedMeasurement[0]),4);
+	memcpy(ADR(flow_actual),ADR(SwappedMeasurement[0]),4);
 
 END_PROGRAM

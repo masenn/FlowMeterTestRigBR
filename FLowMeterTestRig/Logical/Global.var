@@ -1,14 +1,7 @@
 VAR
-	PumpOut : INT; (*Analog Output to pump*)
-	ActiveFlowMeterMeasurement : REAL; (*Measurement from the DUT*)
-	Cori_Measurement : REAL; (*Measurement from the Cori-Flow*)
-	AirTempFloat : REAL; (*Air Temp Input Scaled*)
-	AirTemp : INT; (*Air Temp Input*)
-	FluidTempFloat : REAL; (*Fluid Temp Input Scaled*)
-	FluidTemp : INT; (*Fluid Temp Input*)
-	TargetFlow : REAL; (*Target Flow rate for the rig*)
-	cmdFlowPumpEN : BOOL; (*Command to turn on the analog controlled pump*)
-	LiftPumpEN : BOOL; (*Enables the lift pump to fill the water tower*)
-	gDUT1_rxbuf : ARRAY[0..31] OF UINT;
-	FlowPumpFlowINT : INT; (*0-5V signal that controls the pump*)
+	pump_output : INT;
+	enable_pump : BOOL;
+	enable_isolation_valve : BOOL;
+	target_flow : UINT;
+	flow_actual : REAL;
 END_VAR

@@ -6,15 +6,19 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "File.h"
+#include "file.h"
 #include "modbus.h"
 
+_GLOBAL BOOL enable_isolation_valve;
+_GLOBAL BOOL enable_pump;
+_GLOBAL BOOL dut_solenoids[5];
+_GLOBAL REAL flow_actual;
+_GLOBAL INT	pump_output;
 
-_LOCAL DUT_Slot_t duts[5];
+DUT_Slot_t duts[5];
+_LOCAL UDINT time_val;
 
-_GLOBAL USINT	dut_registers[5][32];
-
-static void modbus_init(void)
+void modbus_init(void)
 {
 	init_DUT(&duts[0],"SL1.IF1.ST1.IF1.ST7.IF1",9);
 	init_DUT(&duts[1],"SL1.IF1.ST1.IF1.ST8.IF1",9);
@@ -22,6 +26,13 @@ static void modbus_init(void)
 	init_DUT(&duts[3],"SL1.IF1.ST1.IF1.ST10.IF1",9);
 	init_DUT(&duts[4],"SL1.IF1.ST1.IF1.ST11.IF1",9);
 }
+
+void modbus_cyclic(void)
+{
+	int i;
+	for(i = 0; i < 1;i++) serve_DUT(&duts[i]);
+}
+
 
 _LOCAL INT test;
 unsigned long file_pointer_ul;
@@ -41,11 +52,12 @@ _INIT void init(void){
 	test = close_file(&test_file);
 	// test = close_file(&test_file);
 	// test = create_file(file_name,file_pointer);
+	modbus_init();
 }
 
 /***** Cyclic part *****/
 _CYCLIC void Cyclic(void)
 {
-	
-//	
+	modbus_cyclic();
+	time_val = get_time();
 }

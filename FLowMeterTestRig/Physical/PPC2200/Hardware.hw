@@ -63,6 +63,7 @@
     <Group ID="FileDevice2" />
     <Parameter ID="FileDeviceName2" Value="TEST" />
     <Parameter ID="FileDevicePath2" Value="USER\" />
+    <Parameter ID="TimeZone" Value="50" />
     <Parameter ID="InternetFileSystemDomainName" Value="flow" />
     <Parameter ID="EthernetHostName" Value="flowrig" />
     <Parameter ID="EthernetDefaultGateway" Value="172.16.100.1" />

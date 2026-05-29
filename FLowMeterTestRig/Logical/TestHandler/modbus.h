@@ -1,7 +1,10 @@
+#pragma once 
+
 #include <bur/plc.h>
 #include <bur/plctypes.h>
 #include <drv_mbus.h>
 #include <string.h>
+#include "flowmeter.h"
 
 // Default config shared across all DUTs
 #define DUT_DEFAULT_TIMEOUT  1000
@@ -9,22 +12,6 @@
 #define DUT_DEFAULT_MODE     "PHY=RS485/BD=38400/PA=N/DB=8/SB=1"
 #define DUT_DEFAULT_CONFIG   ""
 
-typedef struct {
-	USINT	VERSION;
-	USINT	INFO_PN;
-	REAL	INFO_FIRM_VER;
-	USINT	MOD_ADDR;
-	USINT	MOD_BAUD;
-	USINT	MOD_TERM;
-	
-	REAL	DEBUG_UP;
-	REAL	DEBUG_DOWN;
-	REAL	DEBUG_AMB;
-	
-	
-	USINT 	address;
-	USINT 	registers[32];
-} FlowMeter_t;
 
 typedef struct {
 
@@ -54,5 +41,6 @@ typedef struct {
 	FlowMeter_t flow_meter_dut;
 } DUT_Slot_t;
 
-void init_DUT(DUT_Slot_t* dut, const char* device_str,int address);
+void init_DUT(DUT_Slot_t* dut, char* device_str,int address);
 void serve_DUT(DUT_Slot_t* dut);
+

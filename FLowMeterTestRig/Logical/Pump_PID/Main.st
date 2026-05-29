@@ -1,7 +1,10 @@
 
 PROGRAM _INIT
+	enable_pump;
+	flow_actual;
+	target_flow;
+	pump_output;
 	(* Insert code here *)
-	FlowPumpFlowINT;
 	Pump_PID_Pars.DerivativeTime := 0.5;
 	Pump_PID_Pars.FilterTime := 0.0;
 	Pump_PID_Pars.Gain := 2.35;
@@ -28,12 +31,22 @@ PROGRAM _CYCLIC
 		Pump_PID.Update := TRUE; 
 		 
 	END_IF
+
+	// shut off pid if no isolation valve opening
+	IF NOT enable_isolation_valve THEN
+		enable_pump := FALSE;
+	END_IF
 	
-	Pump_PID.Enable := cmdFlowPumpEN;
-	Pump_PID.SetValue := TargetFlow;
-	Pump_PID.ActValue := Cori_Measurement;
-	FlowPumpFlowINT := REAL_TO_INT(Pump_PID.Out);
-	
+	//TODO ensuring that solenoids are open
+
+	IF flow_actual < 350 AND pump_output > 13000 THEN 
+		enable_pump := FALSE;
+	END_IF
+
+	Pump_PID.Enable := enable_pump;
+	Pump_PID.SetValue := target_flow;
+	Pump_PID.ActValue := flow_actual;
+	pump_output := REAL_TO_INT(Pump_PID.Out);
 	Pump_PID();
 
 	 
