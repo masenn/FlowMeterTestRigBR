@@ -25,3 +25,17 @@ void registers_to_flowmeter(FlowMeter_t* dut)
 
     dut->DEBUG_SYSTICK = get_u32t(0x26 - 1,dut->registers);
 }
+
+/**
+ * @brief used if only the debug info registers are read (set from the modbus command)
+ */
+void debug_registers_to_flowmeter(FlowMeter_t* dut) 
+{
+    dut->DEBUG_UP = get_float(0x00,dut->registers);
+    dut->DEBUG_DOWN = get_float(0x02,dut->registers);
+    dut->DEBUG_SYSTICK = get_u32t(0x0A,dut->registers);
+    dut->DEBUG_AMB = get_float(0x08,dut->registers);
+
+    dut->BATCH = dut->registers[0x0C];
+    dut->BATCH_SN = dut->registers[0x0D];
+}

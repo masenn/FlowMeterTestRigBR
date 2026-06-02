@@ -20,8 +20,8 @@ void init_data_logger(char* file_name)
     log.file_name = file_name;
     int result = create_file(&log);
     if(!log.is_open) return;
-    #define HEADER "VER,UP,DOWN,AMB,SYS\n"
-    write_file(&log,"VER,UP,DOWN,AMB,SYS\n",sizeof(HEADER)-1);
+    #define HEADER "TARG,ACT,UP,DOWN,AMB,AMB32,SYS\n"
+    write_file(&log,HEADER,sizeof(HEADER)-1);
     buffer_pos = 0;
     ready = true;
     return;
@@ -81,7 +81,14 @@ static void add_string_to_csv(char* str)
 }
 
 /**
- * Writes the contents of the buffer out and returns busy until buffer has been written
+ * @brief removes comma on final entry (backspace) and then writes new line
+ */
+static void end_csv_line() {     buffer_pos--;add_string_to_buf("\n");    }
+
+static uint32_t get_ieee754(float val) {    uint32_t result;memcpy(&result,&val,sizeof(float));return result;}
+
+/**
+ * @brief Writes the contents of the buffer out and returns busy until buffer has been written
  * 
  */
 static int write_buffer()
@@ -96,22 +103,6 @@ static int write_buffer()
     if(result == ERR_NONE) buffer_pos = 0;
     return result;
 }
-
-int write_test_data(uint32_t time, float current_flow)
-{
-    // if data buffer is fresh
-    if(buffer_pos == 0) 
-    {
-        add_u32_to_buf(time);
-        add_string_to_buf(",");
-        add_float_to_buf(current_flow);
-        add_string_to_buf("\n");
-    }
-    int result = write_file(&log,buffer,buffer_pos);
-    if(result == ERR_NONE) buffer_pos = 0;
-    return result;
-}
-
 
 
 /**
@@ -130,12 +121,15 @@ void log_data_point(System_Info_t* system_info, FlowMeter_t* meter)
     // if the buffer is not busy and ready
     if(write_buffer() == BUFFER_READY) 
     {
-        add_float_to_csv(meter->INFO_FIRM_VER);
+        add_u32_to_csv(system_info->target_flow);
+        add_float_to_csv(system_info->flow_actual);
         add_float_to_csv(meter->DEBUG_UP);
         add_float_to_csv(meter->DEBUG_DOWN);
-        add_float_to_csv(meter->DEBUG_AMB);
+        add_float_to_csv(meter->DEBUG_AMB * 10000);
+        add_u32_to_csv(get_ieee754(meter->DEBUG_AMB));
         add_u32_to_csv(meter->DEBUG_SYSTICK);
-        add_string_to_buf("EOL\n");
+        end_csv_line();
+
     }
 
 }

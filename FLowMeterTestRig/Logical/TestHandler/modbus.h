@@ -4,6 +4,7 @@
 #include <bur/plctypes.h>
 #include <drv_mbus.h>
 #include <string.h>
+#include <stdbool.h>
 #include "flowmeter.h"
 
 // Default config shared across all DUTs
@@ -11,6 +12,9 @@
 #define DUT_DEFAULT_ASCII    0
 #define DUT_DEFAULT_MODE     "PHY=RS485/BD=38400/PA=N/DB=8/SB=1"
 #define DUT_DEFAULT_CONFIG   ""
+
+#define ERR_NONE			0
+#define ERR_BUSY			65535
 
 
 typedef struct {
@@ -37,10 +41,27 @@ typedef struct {
 	BOOL            bError;
 	UINT            errorCode;
 
+	uint32_t last_transmission;
+
 	//Flow Meter Belonging to DUT
 	FlowMeter_t flow_meter_dut;
 } DUT_Slot_t;
 
+typedef struct {
+	uint16_t register_address;
+	uint16_t number_regs;
+	uint8_t function_code;
+	uint16_t* write_data;
+} Modbus_Cmd_t;
+
+#define CMD_READ_HOLDING_REGS 		0x03
+#define CMD_READ_INPUT_REGS 		0x04
+#define CMD_WRITE_SINGLE_REGISTER	0x06
+
+
 void init_DUT(DUT_Slot_t* dut, char* device_str,int address);
-void serve_DUT(DUT_Slot_t* dut);
-INT get_transmission_code();
+int serve_DUT(DUT_Slot_t* dut);
+void set_modbus_cmd(Modbus_Cmd_t* new_cmd);
+void set_modbus_default_cmd();
+bool data_is_stale(DUT_Slot_t* dut);
+void mark_data_as_read(DUT_Slot_t* dut);
