@@ -135,6 +135,7 @@
     <Connection Connector="SL" TargetModule="X20BM11" TargetConnector="SL1" />
     <Connector Name="IF1">
       <Parameter ID="Baudrate" Value="38400" />
+      <Parameter ID="Parity" Value="N" />
       <Parameter ID="DeviceType" Value="RS485" />
     </Connector>
     <Parameter ID="Supervision" Value="off" />
@@ -142,16 +143,27 @@
   <Module Name="X20CS1030a" Type="X20CS1030" Version="1.8.0.0">
     <Connection Connector="SS1" TargetModule="X20TB12b" TargetConnector="SS" />
     <Connection Connector="SL" TargetModule="X20BM11a" TargetConnector="SL1" />
+    <Connector Name="IF1">
+      <Parameter ID="Baudrate" Value="38400" />
+      <Parameter ID="Parity" Value="N" />
+      <Parameter ID="DeviceType" Value="RS485" />
+    </Connector>
     <Parameter ID="Supervision" Value="off" />
   </Module>
   <Module Name="X20CS1030b" Type="X20CS1030" Version="1.8.0.0">
     <Connection Connector="SS1" TargetModule="X20TB12c" TargetConnector="SS" />
     <Connection Connector="SL" TargetModule="X20BM11b" TargetConnector="SL1" />
+    <Connector Name="IF1">
+      <Parameter ID="DeviceType" Value="RS485" />
+    </Connector>
     <Parameter ID="Supervision" Value="off" />
   </Module>
   <Module Name="X20CS1030c" Type="X20CS1030" Version="1.8.0.0">
     <Connection Connector="SS1" TargetModule="X20TB12d" TargetConnector="SS" />
     <Connection Connector="SL" TargetModule="X20BM11c" TargetConnector="SL1" />
+    <Connector Name="IF1">
+      <Parameter ID="DeviceType" Value="RS485" />
+    </Connector>
     <Parameter ID="Supervision" Value="off" />
   </Module>
   <Module Name="X20CS1030d" Type="X20CS1030" Version="1.8.0.0">

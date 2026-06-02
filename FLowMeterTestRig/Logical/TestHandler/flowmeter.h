@@ -19,7 +19,7 @@ typedef struct {
     uint32_t    DEBUG_SYSTICK;
 	
 	uint16_t 	address;
-	uint16_t 	registers[32];
+	uint16_t 	registers[0x28];
 } FlowMeter_t;
 
-void registers_to_flowmeter(uint16_t* registers, FlowMeter_t* flowmeter);
+void registers_to_flowmeter(FlowMeter_t* dut);

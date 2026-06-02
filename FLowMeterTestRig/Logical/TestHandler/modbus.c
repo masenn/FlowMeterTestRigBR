@@ -1,9 +1,10 @@
 #include "modbus.h"
 
+// transmission to see if data has been read since last read
+_LOCAL INT transmission_number;
+
 void init_DUT(DUT_Slot_t* dut, char* device_str,int address)
 {
-
-	
 	memset(dut,0,sizeof(DUT_Slot_t));
 
 	// Copy config strings
@@ -84,13 +85,17 @@ void serve_DUT(DUT_Slot_t* dut)
 		dut->MCmd.node       = dut->flow_meter_dut.address;					/* Slave address */
 		dut->MCmd.data       = (UDINT) &(dut->flow_meter_dut.registers);
 		dut->MCmd.offset     = 1;
-		dut->MCmd.len        = 31;
+		dut->MCmd.len        = 35;
 		MBMCmd(&(dut->MCmd));
 		int statusMCmd = dut->MCmd.status;
 		if (!statusMCmd)
 		{
 			dut->fMCmd   = 1;
 			dut->bError  = 0;
+			//increment if transmission is successful
+			transmission_number++;
+			registers_to_flowmeter(&(dut->flow_meter_dut));
+
 		}
 		else if (dut->statusMCmd == 65535)           /* ERR_FUB_BUSY */
 		{
@@ -119,4 +124,9 @@ void serve_DUT(DUT_Slot_t* dut)
 			dut->fMCmd   = 0;
 		}
 	}
+}
+
+INT get_transmission_code()
+{
+	return transmission_number;
 }

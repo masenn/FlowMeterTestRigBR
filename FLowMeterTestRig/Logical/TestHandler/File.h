@@ -11,12 +11,16 @@
 #define ERR_UNDEFINED		-1
 
 
+
 typedef struct {
     char* file_name;
     unsigned long fp;
     bool is_open;
     unsigned long file_length;
+    unsigned long write_offset;
 } File_t;
+
+
 
 bool file_exists(File_t* file);
 /**

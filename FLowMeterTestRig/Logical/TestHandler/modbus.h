@@ -43,4 +43,4 @@ typedef struct {
 
 void init_DUT(DUT_Slot_t* dut, char* device_str,int address);
 void serve_DUT(DUT_Slot_t* dut);
-
+INT get_transmission_code();

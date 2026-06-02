@@ -7,8 +7,11 @@
 
 #include "file.h"
 
-static uint32_t write_offset = 0;
 
+_LOCAL FileWrite_typ file_write;
+_LOCAL FileDelete_typ file_delete;
+
+_LOCAL INT offset;
 
 static int get_error_code(int wStatus)
 {
@@ -27,7 +30,7 @@ static int get_error_code(int wStatus)
 			return FileIoGetSysError();
 		}
 	}
-	return wStatus;
+	return -3;
 }
 
 //TODO implement
@@ -100,16 +103,17 @@ int create_file(File_t* file)
 
 int write_file(File_t* file, char* write_data,uint16_t write_len) 
 {
-	FileWrite_typ file_write = {0};
 	file_write.enable     = 1;
 	// dereference the pointer to the file
 	file_write.ident    = file->fp;
-	file_write.offset   = write_offset;
+	file_write.offset   = file->write_offset;
 	file_write.pSrc     = (UDINT) write_data;
 	file_write.len      = write_len;
 	/* Call FBK */
 	FileWrite(&file_write);
-	if(!file_write.status) write_offset += write_len;
+	if(file_write.status == ERR_BUSY) return ERR_BUSY;
+	offset = file->write_offset;
+	if(file_write.status == ERR_NONE) file->write_offset += write_len;
 	return get_error_code(file_write.status);
 }
 
@@ -129,7 +133,7 @@ int close_file(File_t* file)
 
 int delete_file(char* file_name)
 {
-	FileDelete_typ file_delete;
+	while(file_delete.status == ERR_BUSY) return ERR_BUSY;
 	/* Initialize file delete structure */
 	file_delete.enable    = 1;
 	file_delete.pDevice = (UDINT) FILE_SYSTEM_NAME;
