@@ -13,6 +13,8 @@
     <File Description="Flow Meter Definitions Functions">flowmeter.c</File>
     <File Description="Logger Functions">logger.h</File>
     <File Description="Logger Functions">logger.c</File>
+    <File Description="Flow Controller">flowcontroller/flowcontroller.h</File>
+    <File Description="Flow Controller">flowcontroller/flowcontroller.c</File>
     <File Description="Local data types" Private="true">Types.typ</File>
     <File Description="Local variables" Private="true">Variables.var</File>
   </Files>

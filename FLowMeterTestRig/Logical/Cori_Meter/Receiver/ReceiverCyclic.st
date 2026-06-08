@@ -71,7 +71,11 @@ PROGRAM _CYCLIC
 			Receiver.step := FRM_RBUF;													(*release read buffer*)
 			
 		FRM_RBUF:	(*--- release readbuffer*)
-		
+			SwappedMeasurement[0] := Receiver.receive_data[11];
+			SwappedMeasurement[1] := Receiver.receive_data[10];
+			SwappedMeasurement[2] := Receiver.receive_data[9];
+			SwappedMeasurement[3] := Receiver.receive_data[8];
+			memcpy(ADR(flow_actual),ADR(SwappedMeasurement[0]),4);
 			(*Parameters for FRM_rbuf()*)
 			Receiver.FRM_rbuf_0.enable := TRUE;
 			Receiver.FRM_rbuf_0.ident := Receiver.FRM_xopen_0.ident;					(*ident from FRM_xopen()*)
@@ -113,10 +117,6 @@ PROGRAM _CYCLIC
 		FRM_ERROR:	(*--- error handling*)
 			; (*not implementet yet, check help for error codes*)
 	END_CASE	
-	SwappedMeasurement[0] := Receiver.receive_data[11];
-	SwappedMeasurement[1] := Receiver.receive_data[10];
-	SwappedMeasurement[2] := Receiver.receive_data[9];
-	SwappedMeasurement[3] := Receiver.receive_data[8];
-	memcpy(ADR(flow_actual),ADR(SwappedMeasurement[0]),4);
+	
 
 END_PROGRAM

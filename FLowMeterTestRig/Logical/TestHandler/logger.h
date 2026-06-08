@@ -23,4 +23,5 @@ int write_test_data(uint32_t time, float current_flow);
 int write_time();
 // main entry point
 void log_data_point(System_Info_t* system_info, FlowMeter_t* flow_info);
+void log_all_meters(DUT_Slot_t* duts);
 

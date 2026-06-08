@@ -52,16 +52,21 @@ typedef struct {
 	uint16_t number_regs;
 	uint8_t function_code;
 	uint16_t* write_data;
+	uint16_t internal_cmd_id;
 } Modbus_Cmd_t;
 
 #define CMD_READ_HOLDING_REGS 		0x03
 #define CMD_READ_INPUT_REGS 		0x04
 #define CMD_WRITE_SINGLE_REGISTER	0x06
 
+#define MODBUS_CMD_DEFAULT 		0x00
+#define MODBUS_CMD_GETDEBUG 	0x01
+#define MODBUS_CMD_HEATERON 	0x02
+#define MODBUS_CMD_HEATEROFF	0x03
+#define MODBUS_CMD_GETMETADATA	0x04
 
 void init_DUT(DUT_Slot_t* dut, char* device_str,int address);
 int serve_DUT(DUT_Slot_t* dut);
-void set_modbus_cmd(Modbus_Cmd_t* new_cmd);
-void set_modbus_default_cmd();
+void set_modbus_cmd(uint16_t new_cmd);
 bool data_is_stale(DUT_Slot_t* dut);
 void mark_data_as_read(DUT_Slot_t* dut);

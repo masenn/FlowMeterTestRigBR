@@ -2,6 +2,12 @@ VAR
 	pump_output : INT;
 	enable_pump : BOOL;
 	enable_isolation_valve : BOOL;
+	enable_flow_controller : BOOL;
 	target_flow : UINT;
 	flow_actual : REAL;
+	send_heater_on : BOOL;
+	send_heater_off : BOOL;
+	reset_log : BOOL;
+	flow_meter_power_en : BOOL;
+	uw_tick : UDINT;
 END_VAR

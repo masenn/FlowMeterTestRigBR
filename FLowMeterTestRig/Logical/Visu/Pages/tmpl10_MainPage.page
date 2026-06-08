@@ -69,13 +69,17 @@
           <Text ID="96525" Value="Target Temp"/>
           <Text ID="96813" Value="Isolation Valve Enable"/>
           <Text ID="96814" Value="Isolation Valve Disable"/>
-          <Text ID="96816" Value="Lift Pump Enable"/>
-          <Text ID="96817" Value="Lift Pump Disable"/>
+          <Text ID="96816" Value="Enable Flow Controller"/>
+          <Text ID="96817" Value="Disable Flow Controller"/>
           <Text ID="97992" Value="k_P\n"/>
           <Text ID="97993" Value="k_I\n"/>
           <Text ID="97994" Value="k_D\n"/>
           <Text ID="98290" Value="PID ENABLE"/>
           <Text ID="98291" Value="Lift Pump Disable"/>
+          <Text ID="98589" Value="HEATER ON"/>
+          <Text ID="98590" Value="HEATER ON"/>
+          <Text ID="98591" Value="HEATER OFF"/>
+          <Text ID="98592" Value="HEATER OFF"/>
         </TextLayer>
         <TextLayer LanguageId="de">
           <Text ID="95669" Value="Text_1"/>
@@ -103,6 +107,10 @@
           <Text ID="97994" Value="Text_1"/>
           <Text ID="98290" Value=""/>
           <Text ID="98291" Value=""/>
+          <Text ID="98589" Value=""/>
+          <Text ID="98590" Value=""/>
+          <Text ID="98591" Value=""/>
+          <Text ID="98592" Value=""/>
         </TextLayer>
         <IndexMap>
           <Index ID="95669" Value="0"/>
@@ -130,6 +138,10 @@
           <Index ID="97994" Value="25"/>
           <Index ID="98290" Value="22"/>
           <Index ID="98291" Value="23"/>
+          <Index ID="98589" Value="26"/>
+          <Index ID="98590" Value="27"/>
+          <Index ID="98591" Value="28"/>
+          <Index ID="98592" Value="29"/>
         </IndexMap>
       </TextGroup>
       <Controls>
@@ -726,6 +738,107 @@
           <Property Name="ValueMode" Value="Standard"/>
           <Property Name="Width" Value="172"/>
         </Control>
+        <Control ClassId="0x00001002" Name="Button_9">
+          <Property Name="BitmapIndexDatapoint" Value="None"/>
+          <Property Name="BitmapSource" Value="None"/>
+          <Property Name="ControlID" Value="0"/>
+          <Property Name="Description" Value=""/>
+          <Property Name="EmbVirtualKey" Value="Source[local].VirtualKey[%embVirtualKey_20]"/>
+          <Property Name="Height" Value="53"/>
+          <Property Name="KeyMatrixOffset" Value="None"/>
+          <Property Name="Left" Value="412"/>
+          <Property Name="PressedBitmapSource" Value="Source[embedded].Property[BitmapSource]"/>
+          <Property Name="PressedTextGroup" Value="Source[embedded].TextGroup"/>
+          <Property Name="PressedTextIndex" Value="27"/>
+          <Property Name="PressedTextSource" Value="SingleText"/>
+          <Property Name="StyleClass" Value="Source[relative:StyleGroup].StyleClass[Default]"/>
+          <Property Name="TextGroup" Value="Source[embedded].TextGroup"/>
+          <Property Name="TextIndex" Value="26"/>
+          <Property Name="TextIndexDatapoint" Value="None"/>
+          <Property Name="TextSimulationValue" Value="0"/>
+          <Property Name="TextSource" Value="SingleText"/>
+          <Property Name="Top" Value="592"/>
+          <Property Name="VirtualKey" Value="Source[local].VirtualKey[%embVirtualKey_20]"/>
+          <Property Name="Width" Value="202"/>
+        </Control>
+        <Control ClassId="0x00001002" Name="Button_10">
+          <Property Name="BitmapIndexDatapoint" Value="None"/>
+          <Property Name="BitmapSource" Value="None"/>
+          <Property Name="ControlID" Value="0"/>
+          <Property Name="Description" Value=""/>
+          <Property Name="EmbVirtualKey" Value="Source[local].VirtualKey[%embVirtualKey_21]"/>
+          <Property Name="Height" Value="53"/>
+          <Property Name="KeyMatrixOffset" Value="None"/>
+          <Property Name="Left" Value="416"/>
+          <Property Name="PressedBitmapSource" Value="Source[embedded].Property[BitmapSource]"/>
+          <Property Name="PressedTextGroup" Value="Source[embedded].TextGroup"/>
+          <Property Name="PressedTextIndex" Value="29"/>
+          <Property Name="PressedTextSource" Value="SingleText"/>
+          <Property Name="StyleClass" Value="Source[relative:StyleGroup].StyleClass[Default]"/>
+          <Property Name="TextGroup" Value="Source[embedded].TextGroup"/>
+          <Property Name="TextIndex" Value="28"/>
+          <Property Name="TextIndexDatapoint" Value="None"/>
+          <Property Name="TextSimulationValue" Value="0"/>
+          <Property Name="TextSource" Value="SingleText"/>
+          <Property Name="Top" Value="656"/>
+          <Property Name="VirtualKey" Value="Source[local].VirtualKey[%embVirtualKey_21]"/>
+          <Property Name="Width" Value="202"/>
+        </Control>
+        <Control ClassId="0x00001001" Name="Shape_1">
+          <Property Name="ColorDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_okay[0]]"/>
+          <Property Name="ControlID" Value="0"/>
+          <Property Name="Description" Value=""/>
+          <Property Name="Height" Value="30"/>
+          <Property Name="Left" Value="782"/>
+          <Property Name="Shape" Value="Ellipse"/>
+          <Property Name="StyleClass" Value="Source[relative:StyleGroup].StyleClass[Default]"/>
+          <Property Name="Top" Value="643"/>
+          <Property Name="Width" Value="30"/>
+        </Control>
+        <Control ClassId="0x00001001" Name="Shape_2">
+          <Property Name="ColorDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_okay[1]]"/>
+          <Property Name="ControlID" Value="0"/>
+          <Property Name="Description" Value=""/>
+          <Property Name="Height" Value="30"/>
+          <Property Name="Left" Value="831"/>
+          <Property Name="Shape" Value="Ellipse"/>
+          <Property Name="StyleClass" Value="Source[relative:StyleGroup].StyleClass[Default]"/>
+          <Property Name="Top" Value="643"/>
+          <Property Name="Width" Value="30"/>
+        </Control>
+        <Control ClassId="0x00001001" Name="Shape_3">
+          <Property Name="ColorDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_okay[2]]"/>
+          <Property Name="ControlID" Value="0"/>
+          <Property Name="Description" Value=""/>
+          <Property Name="Height" Value="30"/>
+          <Property Name="Left" Value="876"/>
+          <Property Name="Shape" Value="Ellipse"/>
+          <Property Name="StyleClass" Value="Source[relative:StyleGroup].StyleClass[Default]"/>
+          <Property Name="Top" Value="644"/>
+          <Property Name="Width" Value="30"/>
+        </Control>
+        <Control ClassId="0x00001001" Name="Shape_4">
+          <Property Name="ColorDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_okay[3]]"/>
+          <Property Name="ControlID" Value="0"/>
+          <Property Name="Description" Value=""/>
+          <Property Name="Height" Value="30"/>
+          <Property Name="Left" Value="922"/>
+          <Property Name="Shape" Value="Ellipse"/>
+          <Property Name="StyleClass" Value="Source[relative:StyleGroup].StyleClass[Default]"/>
+          <Property Name="Top" Value="643"/>
+          <Property Name="Width" Value="30"/>
+        </Control>
+        <Control ClassId="0x00001001" Name="Shape_5">
+          <Property Name="ColorDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_okay[4]]"/>
+          <Property Name="ControlID" Value="0"/>
+          <Property Name="Description" Value=""/>
+          <Property Name="Height" Value="30"/>
+          <Property Name="Left" Value="967"/>
+          <Property Name="Shape" Value="Ellipse"/>
+          <Property Name="StyleClass" Value="Source[relative:StyleGroup].StyleClass[Default]"/>
+          <Property Name="Top" Value="643"/>
+          <Property Name="Width" Value="30"/>
+        </Control>
       </Controls>
       <KeyMapping>
         <VirtualKey Name="%embVirtualKey_12">
@@ -836,7 +949,7 @@
               <Property Name="Name" Value="Action_0"/>
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
-              <Property Name="ValueDatapoint" Value="None"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.enable_flow_controller]"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>
@@ -853,6 +966,38 @@
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
               <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.enable_pump]"/>
+            </KeyAction>
+          </KeyActions>
+        </VirtualKey>
+        <VirtualKey Name="%embVirtualKey_20">
+          <Property Name="Description" Value=""/>
+          <Property Name="VirtualKey_LED" Value="False"/>
+          <KeyActions>
+            <KeyAction ClassId="0x0000016A">
+              <Property Name="CompletionDatapoint" Value="None"/>
+              <Property Name="CompletionValue" Value="0"/>
+              <Property Name="Description" Value=""/>
+              <Property Name="Locking" Value="Never"/>
+              <Property Name="Name" Value="Action_0"/>
+              <Property Name="ResetValue" Value="0"/>
+              <Property Name="SetValue" Value="1"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.send_heater_on]"/>
+            </KeyAction>
+          </KeyActions>
+        </VirtualKey>
+        <VirtualKey Name="%embVirtualKey_21">
+          <Property Name="Description" Value=""/>
+          <Property Name="VirtualKey_LED" Value="False"/>
+          <KeyActions>
+            <KeyAction ClassId="0x0000016A">
+              <Property Name="CompletionDatapoint" Value="None"/>
+              <Property Name="CompletionValue" Value="0"/>
+              <Property Name="Description" Value=""/>
+              <Property Name="Locking" Value="Never"/>
+              <Property Name="Name" Value="Action_0"/>
+              <Property Name="ResetValue" Value="0"/>
+              <Property Name="SetValue" Value="1"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.send_heater_off]"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>

@@ -4,6 +4,8 @@ PROGRAM _INIT
 	flow_actual;
 	target_flow;
 	pump_output;
+	dut_solenoids;
+
 	(* Insert code here *)
 	Pump_PID_Pars.DerivativeTime := 0.5;
 	Pump_PID_Pars.FilterTime := 0.0;
@@ -38,6 +40,10 @@ PROGRAM _CYCLIC
 	END_IF
 	
 	//TODO ensuring that solenoids are open
+	// IF (NOT dut_solenoids[0]) AND (NOT dut_solenoids[1]) AND (NOT dut_solenoids[2]) AND (NOT dut_solenoids[3]) AND (NOT dut_solenoids[4]) THEN
+	
+	// 	enable_pump := FALSE;
+	// END_IF
 
 	IF flow_actual < 350 AND pump_output > 13000 THEN 
 		enable_pump := FALSE;

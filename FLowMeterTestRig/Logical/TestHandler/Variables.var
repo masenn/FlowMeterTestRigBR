@@ -1,3 +1,4 @@
 VAR
 	dut_solenoids : ARRAY[0..4] OF BOOL;
+	dut_okay : ARRAY[0..4] OF INT;
 END_VAR

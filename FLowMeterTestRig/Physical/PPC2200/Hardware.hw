@@ -26,6 +26,9 @@
       <Parameter ID="MemSizeIn" Value="-1" />
       <Parameter ID="MemSizeOut" Value="-1" />
       <Parameter ID="ModbusSlaveGrey" Value="1" />
+      <Group ID="ModbusSlaveConfig_1" />
+      <Parameter ID="ModbusSlaveTimeout_1" Value="100" />
+      <Parameter ID="ModbusSlaveAddressType_1" Value="FixedSize" />
       <Parameter ID="ModbusMaster" Value="0" />
     </Connector>
     <Connector Name="IF4">
@@ -42,9 +45,16 @@
       <Parameter ID="MemSizeOut" Value="-1" />
       <Parameter ID="ModbusSlaveGrey" Value="1" />
       <Group ID="ModbusSlaveConfig_1" />
-      <Parameter ID="ModbusSlaveTimeout_1" Value="250" />
+      <Parameter ID="ModbusSlaveTimeout_1" Value="5000" />
+      <Group ID="CoilChannelGroup1_1" />
+      <Parameter ID="CoilChannelID1_1" Value="TEST" />
+      <Group ID="CoilChannelGroup2_1" />
+      <Parameter ID="CoilChannelID2_1" Value="TEST2" />
+      <Parameter ID="CoilChannelAddress2_1" Value="16381" />
       <Group ID="HoldingRegisterChannelGroup1_1" />
-      <Parameter ID="HoldingRegisterChannelAddress1_1" Value="1024" />
+      <Parameter ID="HoldingRegisterChannelID1_1" Value="FLOWMETERDATA" />
+      <Parameter ID="HoldingRegisterChannelAddress1_1" Value="1" />
+      <Parameter ID="HoldingRegisterChannelNrElements1_1" Value="32" />
       <Parameter ID="ModbusMaster" Value="0" />
     </Connector>
     <Connector Name="IF5">
@@ -78,6 +88,7 @@
     <Connection Connector="SS1" TargetModule="X20TB12g" TargetConnector="SS" />
     <Connection Connector="SL" TargetModule="X20BM11f" TargetConnector="SL1" />
     <Parameter ID="Supervision" Value="off" />
+    <Parameter ID="ChannelType01" Value="4 to 20mA" />
   </Module>
   <Module Name="X20AI4622a" Type="X20AI4622" Version="1.2.0.0">
     <Connection Connector="SS1" TargetModule="X20TB12j" TargetConnector="SS" />

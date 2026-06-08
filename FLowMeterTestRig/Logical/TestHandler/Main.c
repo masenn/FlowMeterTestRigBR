@@ -10,31 +10,39 @@
 #include "modbus.h"
 #include "logger.h"
 #include "timing.h"
+#include "flowcontroller/flowcontroller.h"
 
-#define STATE_GET_FIRM_VER 0
+#define STATE_WRITE_META_DATA
 #define STATE_UPDATE_READINGS 1
 
 _GLOBAL BOOL enable_isolation_valve;
 _GLOBAL BOOL enable_pump;
 _GLOBAL BOOL dut_solenoids[5];
+_GLOBAL BOOL enable_flow_controller;
+
 _GLOBAL REAL flow_actual;
 _GLOBAL INT	pump_output;
 _GLOBAL UINT target_flow; 
 
+_GLOBAL BOOL send_heater_on;
+_GLOBAL BOOL send_heater_off;
+_GLOBAL BOOL reset_log;
+_GLOBAL BOOL flow_meter_power_en;
+
+
+_LOCAL INT active_dut;
+
+
 DUT_Slot_t duts[5];
+_GLOBAL INT dut_okay[5];
+
 _LOCAL UDINT log_num;
 _LOCAL UDINT test;
 _LOCAL UDINT num_attempts;
 
-Modbus_Cmd_t READ_DEBUG_REGS = {
-	.function_code = CMD_READ_HOLDING_REGS,
-	.number_regs = 0x10,
-	.register_address = 0x1C,
-	//NULL pointer for no write data
-	.write_data = 0
-};
-
 System_Info_t sys_info = { 0 };
+
+_LOCAL UINT current_state;
 
 void modbus_init(void)
 {
@@ -48,34 +56,61 @@ void modbus_init(void)
 void modbus_cyclic(void)
 {
 	int i;
-	for(i = 0; i < 5;i++) serve_DUT(&duts[i]);
+	for(i = 1; i < 2;i++)
+	{
+		int err = serve_DUT(&duts[i]);
+		dut_okay[i] = !(err != 0 && err != 65535);
+	} 
 }
 
-_INIT void init(void){
+_INIT void init(void)
+{
+	flow_meter_power_en = 1;
 	init_data_logger("test_log.csv");
 	modbus_init();
-	set_modbus_cmd(&READ_DEBUG_REGS);
+	active_dut = 1;
 }
-
-static uint16_t current_state;
 
 /***** Cyclic part *****/
 _CYCLIC void Cyclic(void)
 {
+	if (send_heater_off) set_modbus_cmd(MODBUS_CMD_HEATEROFF);
+	else if (send_heater_on) set_modbus_cmd(MODBUS_CMD_HEATERON);
+	else set_modbus_cmd(MODBUS_CMD_GETDEBUG);
 	modbus_cyclic();
+	if(enable_flow_controller) 
+	{
+		if (!flow_controller_initialized()) 
+		{
+			init_flow_controller(active_dut,300,2500,50,10);
+		}
+		flow_controller_cyclic();
+	}
 
-	if(log_num < 1000)
+	if(log_num < 20000 && !send_heater_on && !send_heater_off && enable_flow_controller)
 	{
 		//if data is not stale, log to file
-		if(!data_is_stale(&duts[2])) 
+		if(!data_is_stale(&duts[active_dut])) 
 		{
 			//logs data to the log 
 			sys_info.flow_actual = flow_actual;
 			sys_info.target_flow = target_flow;
 			sys_info.date_time = get_time();
-			log_data_point(&sys_info,&(duts[2].flow_meter_dut));
-			mark_data_as_read(&duts[2]);
+			log_data_point(&sys_info,&(duts[active_dut].flow_meter_dut));
+			mark_data_as_read(&duts[active_dut]);
+			//pings the flow controller to incremenent and if # of reads is enough, continue to next flow
+			ping_flow_controller();
 			log_num++;
 		}
+		// // if(!data_is_stale(&duts[0]))
+		// {
+		// 	log_all_meters(duts);
+		// 	mark_data_as_read(&duts[0]);
+		// 	log_num++;
+		// }
 	}
+
+
+
+
 }

@@ -3,7 +3,9 @@ VAR_CONFIG
 	::TestHandle:dut_solenoids[1] AT %QX."X20DO4332".DigitalOutput02;
 	::TestHandle:dut_solenoids[4] AT %QX."X20DO4332a".DigitalOutput01;
 	::TestHandle:dut_solenoids[0] AT %QX."X20DO4332".DigitalOutput01;
-	::TestHandle:dut_solenoids[2]  AT %QX."X20DO4332".DigitalOutput03;
-	::TestHandle:dut_solenoids[3]  AT %QX."X20DO4332".DigitalOutput04;
+	::TestHandle:dut_solenoids[2] AT %QX."X20DO4332".DigitalOutput03;
+	::TestHandle:dut_solenoids[3] AT %QX."X20DO4332".DigitalOutput04;
 	::pump_output AT %QW."X20AO4622".AnalogOutput01;
+	::flow_meter_power_en AT %QX."X20DO4332a".DigitalOutput03;
+	::enable_flow_controller AT %IX."5PPC2200_AL18_000".IF4.TEST2;
 END_VAR

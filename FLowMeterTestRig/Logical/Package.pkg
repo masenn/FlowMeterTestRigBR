@@ -10,5 +10,6 @@
     <Object Type="Program" Language="ANSIC">FlowMeter</Object>
     <Object Type="DataObject" Language="Vc" Description="1920x1080 (FULLHD)">Visu</Object>
     <Object Type="Program" Language="ANSIC">TestHandler</Object>
+    <Object Type="Program" Language="ANSIC">Systick</Object>
   </Objects>
 </Package>

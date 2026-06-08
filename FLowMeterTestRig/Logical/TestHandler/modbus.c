@@ -3,15 +3,50 @@
 // transmission to see if data has been read since last read
 static uint32_t transmission_number;
 
-static Modbus_Cmd_t* cmd;
+static Modbus_Cmd_t cmd;
 
-static Modbus_Cmd_t default_cmd = {
-	.function_code = CMD_READ_HOLDING_REGS,
-	.register_address = 0x01,
-	.number_regs = 0x1F,
-	// NULL POINTER because write data isn't needed
-	.write_data = 0
-};
+_LOCAL UINT selected_cmd_id;
+static uint16_t DUMMY = 0;
+
+void set_modbus_cmd(uint16_t new_cmd)
+{
+	selected_cmd_id = new_cmd;
+	switch (selected_cmd_id) 
+	{
+		case MODBUS_CMD_DEFAULT:
+			cmd.function_code    = CMD_READ_HOLDING_REGS;
+			cmd.register_address = 0x01;
+			cmd.number_regs      = 0x1F;
+			cmd.write_data       = NULL;
+			break;
+
+		case MODBUS_CMD_GETDEBUG:
+			cmd.function_code    = CMD_READ_HOLDING_REGS;
+			cmd.register_address = 0x1C;
+			cmd.number_regs      = 0x10;
+			cmd.write_data       = NULL;
+			break;
+
+		case MODBUS_CMD_HEATERON:
+			cmd.function_code    = CMD_WRITE_SINGLE_REGISTER;
+			cmd.register_address = 0x101;
+			cmd.number_regs      = 0x1;
+			cmd.write_data       = &DUMMY;
+			break;
+
+		case MODBUS_CMD_HEATEROFF:
+			cmd.function_code    = CMD_WRITE_SINGLE_REGISTER;
+			cmd.register_address = 0x102;
+			cmd.number_regs      = 0x1;
+			cmd.write_data       = &DUMMY;
+			break;
+		default:
+			/* unknown command - leave current_cmd unchanged or handle error */
+			break;
+	}
+	return;
+
+}
 
 void init_DUT(DUT_Slot_t* dut, char* device_str,int address)
 {
@@ -24,13 +59,6 @@ void init_DUT(DUT_Slot_t* dut, char* device_str,int address)
 
     // Timeouts and flags
     dut->timeout    = DUT_DEFAULT_TIMEOUT;
-    dut->fMCmd      = 1;
-    dut->bConnected = 0;
-    dut->bError     = 0;
-
-	dut->fMOpen      = 0;
-	dut->fMCmd       = 0;
-	dut->fMClose     = 0;
 
 	/* Open Modbus connection */
 	dut->MOpen.enable    = 1;
@@ -46,15 +74,13 @@ void init_DUT(DUT_Slot_t* dut, char* device_str,int address)
 	if (!statusMOpen)
 	{
 		dut->ident       = dut->MOpen.ident;
-		dut->bConnected  = 1;
 	}
 	else
 	{
-		dut->bError      = 1;
 		dut->errorCode   = statusMOpen;
 	}
 
-	cmd = &default_cmd;
+	set_modbus_cmd(MODBUS_CMD_DEFAULT);
 }
 
 int serve_DUT(DUT_Slot_t* dut)
@@ -64,12 +90,12 @@ int serve_DUT(DUT_Slot_t* dut)
 	dut->MCmd.ident      = dut->ident;
 	dut->MCmd.node       = dut->flow_meter_dut.address;
 	dut->MCmd.data       = (UDINT) &(dut->flow_meter_dut.registers);
-	// if write data, take write data, otherwise, 
+	// if write data, take write data, otherwise, place registers as the destination address
 	dut->MCmd.data 		= 
-		cmd->function_code == CMD_WRITE_SINGLE_REGISTER ? (UDINT)cmd->write_data:(UDINT) &(dut->flow_meter_dut.registers);
-	dut->MCmd.mfc        = cmd->function_code;
-	dut->MCmd.offset     = cmd->register_address;
-	dut->MCmd.len        = cmd->number_regs;
+		cmd.function_code == CMD_WRITE_SINGLE_REGISTER ? (UDINT)cmd.write_data:(UDINT) &(dut->flow_meter_dut.registers);
+	dut->MCmd.mfc        = cmd.function_code;
+	dut->MCmd.offset     = cmd.register_address;
+	dut->MCmd.len        = cmd.number_regs;
 	MBMCmd(&(dut->MCmd));
 	int error_code = dut->MCmd.status;
 	if (error_code == ERR_NONE)
@@ -77,20 +103,26 @@ int serve_DUT(DUT_Slot_t* dut)
 		//increment if transmission is successful
 		dut->last_transmission = transmission_number;
 		transmission_number++;
-		debug_registers_to_flowmeter(&(dut->flow_meter_dut));
+		switch (selected_cmd_id)
+		{
+			case MODBUS_CMD_GETDEBUG:
+				debug_registers_to_flowmeter(&(dut->flow_meter_dut));
+				break;
+			case MODBUS_CMD_DEFAULT:
+				registers_to_flowmeter(&(dut->flow_meter_dut));
+				break;
+			default:
+				break;
+		}
 	}
 	return error_code;
 }
 
-void set_modbus_cmd(Modbus_Cmd_t* new_cmd)
+void get_current_modbus_cmd() 
 {
-	cmd = new_cmd;
+	return selected_cmd_id;
 }
 
-void set_modbus_default_cmd()
-{
-	cmd = &default_cmd;
-}
 
 /**
  * @brief checks if new data has been received since last read
