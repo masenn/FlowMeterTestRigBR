@@ -84,8 +84,6 @@ static void add_string_to_csv(char* str)
  */
 static void end_csv_line() {     buffer_pos--;add_string_to_buf("\n");    }
 
-static uint32_t get_ieee754(float val) {    uint32_t result;memcpy(&result,&val,sizeof(float));return result;}
-
 /**
  * @brief Writes the contents of the buffer out and returns busy until buffer has been written
  * 

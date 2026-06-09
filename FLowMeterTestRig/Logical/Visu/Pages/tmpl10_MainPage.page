@@ -853,7 +853,7 @@
               <Property Name="Name" Value="Action_0"/>
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
-              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_solenoids[1]]"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.dut_solenoids[1]]"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>
@@ -869,7 +869,7 @@
               <Property Name="Name" Value="Action_0"/>
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
-              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_solenoids[2]]"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.dut_solenoids[2]]"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>
@@ -885,7 +885,7 @@
               <Property Name="Name" Value="Action_0"/>
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
-              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_solenoids[3]]"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.dut_solenoids[3]]"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>
@@ -901,7 +901,7 @@
               <Property Name="Name" Value="Action_0"/>
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
-              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_solenoids[4]]"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.dut_solenoids[4]]"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>
@@ -917,7 +917,7 @@
               <Property Name="Name" Value="Action_0"/>
               <Property Name="ResetValue" Value="0"/>
               <Property Name="SetValue" Value="1"/>
-              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.TestHandler.dut_solenoids[0]]"/>
+              <Property Name="ValueDatapoint" Value="Source[global].Variable[DataSource.dut_solenoids[0]]"/>
             </KeyAction>
           </KeyActions>
         </VirtualKey>

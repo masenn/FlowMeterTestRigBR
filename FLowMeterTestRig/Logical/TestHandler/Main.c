@@ -8,6 +8,7 @@
 
 #include "file.h"
 #include "modbus.h"
+#include "modbustcp.h"
 #include "logger.h"
 #include "timing.h"
 #include "flowcontroller/flowcontroller.h"
@@ -78,6 +79,7 @@ _CYCLIC void Cyclic(void)
 	else if (send_heater_on) set_modbus_cmd(MODBUS_CMD_HEATERON);
 	else set_modbus_cmd(MODBUS_CMD_GETDEBUG);
 	modbus_cyclic();
+	update_modbus_tcp_values(&duts[active_dut]);
 	if(enable_flow_controller) 
 	{
 		if (!flow_controller_initialized()) 

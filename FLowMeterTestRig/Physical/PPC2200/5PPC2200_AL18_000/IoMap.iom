@@ -1,11 +1,30 @@
 VAR_CONFIG
 	::enable_isolation_valve AT %QX."X20DO4332a".DigitalOutput02;
-	::TestHandle:dut_solenoids[1] AT %QX."X20DO4332".DigitalOutput02;
-	::TestHandle:dut_solenoids[4] AT %QX."X20DO4332a".DigitalOutput01;
-	::TestHandle:dut_solenoids[0] AT %QX."X20DO4332".DigitalOutput01;
-	::TestHandle:dut_solenoids[2] AT %QX."X20DO4332".DigitalOutput03;
-	::TestHandle:dut_solenoids[3] AT %QX."X20DO4332".DigitalOutput04;
+	::dut_solenoids[3] AT %QX."X20DO4332".DigitalOutput02;
+	::dut_solenoids[0] AT %QX."X20DO4332a".DigitalOutput01;
+	::dut_solenoids[4] AT %QX."X20DO4332".DigitalOutput01;
+	::dut_solenoids[2] AT %QX."X20DO4332".DigitalOutput03;
+	::dut_solenoids[1] AT %QX."X20DO4332".DigitalOutput04;
 	::pump_output AT %QW."X20AO4622".AnalogOutput01;
 	::flow_meter_power_en AT %QX."X20DO4332a".DigitalOutput03;
 	::enable_flow_controller AT %IX."5PPC2200_AL18_000".IF4.TEST2;
+	::modbus_target_flow            AT %IW."5PPC2200_AL18_000".IF4.TARGET_FLOW;
+	::modbus_flow_actual            AT %IW."5PPC2200_AL18_000".IF4.FLOW_ACTUAL;
+	::modbus_active_dut             AT %IW."5PPC2200_AL18_000".IF4.ACTIVE_DUT;
+	::modbus_DUT_up_msb             AT %IW."5PPC2200_AL18_000".IF4.DUT_UP_MSB;
+	::modbus_DUT_up_lsb             AT %IW."5PPC2200_AL18_000".IF4.DUT_UP_LSB;
+	::modbus_DUT_down_msb           AT %IW."5PPC2200_AL18_000".IF4.DUT_DOWN_MSB;
+	::modbus_DUT_down_lsb           AT %IW."5PPC2200_AL18_000".IF4.DUT_DOWN_LSB;
+	::modbus_DUT_amb_msb            AT %IW."5PPC2200_AL18_000".IF4.DUT_AMB_MSB;
+	::modbus_DUT_amb_lsb            AT %IW."5PPC2200_AL18_000".IF4.DUT_AMB_LSB;
+	::modbus_DUT_sys_msb            AT %IW."5PPC2200_AL18_000".IF4.DUT_SYS_MSB;
+	::modbus_DUT_sys_lsb            AT %IW."5PPC2200_AL18_000".IF4.DUT_SYS_LSB;
+	::modbus_enable_flow_controller AT %IX."5PPC2200_AL18_000".IF4.FLOW_CONTROLLER_EN;
+	::modbus_enable_isolation_valve AT %IX."5PPC2200_AL18_000".IF4.ISOLATION_ENABLE;
+	::modbus_pump_enable            AT %IX."5PPC2200_AL18_000".IF4.PID_EN;
+	::modbus_dut_solenoids[0]       AT %IX."5PPC2200_AL18_000".IF4.DUT1_EN;
+	::modbus_dut_solenoids[1]       AT %IX."5PPC2200_AL18_000".IF4.DUT2_EN;
+	::modbus_dut_solenoids[2]       AT %IX."5PPC2200_AL18_000".IF4.DUT3_EN;
+	::modbus_dut_solenoids[3]       AT %IX."5PPC2200_AL18_000".IF4.DUT4_EN;
+	::modbus_dut_solenoids[4]       AT %IX."5PPC2200_AL18_000".IF4.DUT5_EN;
 END_VAR

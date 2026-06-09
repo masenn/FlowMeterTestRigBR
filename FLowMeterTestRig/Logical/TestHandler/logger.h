@@ -4,6 +4,7 @@
 #include "modbus.h"
 #include "time.h"
 #include "file.h"
+#include "utils.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <asstring.h>
