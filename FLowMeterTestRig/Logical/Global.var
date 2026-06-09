@@ -5,9 +5,15 @@ VAR
 	enable_flow_controller : BOOL;
 	target_flow : UINT;
 	flow_actual : REAL;
+	flow_actual_int : UINT;
 	send_heater_on : BOOL;
 	send_heater_off : BOOL;
 	reset_log : BOOL;
 	flow_meter_power_en : BOOL;
 	uw_tick : UDINT;
+
+	(*modbus tcp values*)
+	modbus_flow_actual : UINT;
+
+
 END_VAR
