@@ -15,6 +15,8 @@
     <File Description="Logger Functions">logger.c</File>
     <File Description="Flow Controller">flowcontroller/flowcontroller.h</File>
     <File Description="Flow Controller">flowcontroller/flowcontroller.c</File>
+    <File Description="Modbus TCP">modbustcp.h</File>
+    <File Description="Modbus TCP">modbustcp.c</File>
     <File Description="Local data types" Private="true">Types.typ</File>
     <File Description="Local variables" Private="true">Variables.var</File>
   </Files>

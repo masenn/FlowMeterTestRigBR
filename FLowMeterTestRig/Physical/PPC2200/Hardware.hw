@@ -52,9 +52,17 @@
       <Parameter ID="CoilChannelID2_1" Value="TEST2" />
       <Parameter ID="CoilChannelAddress2_1" Value="16381" />
       <Group ID="HoldingRegisterChannelGroup1_1" />
-      <Parameter ID="HoldingRegisterChannelID1_1" Value="FLOWMETERDATA" />
+      <Parameter ID="HoldingRegisterChannelID1_1" Value="TARGET_FLOW" />
       <Parameter ID="HoldingRegisterChannelAddress1_1" Value="1" />
-      <Parameter ID="HoldingRegisterChannelNrElements1_1" Value="32" />
+      <Parameter ID="HoldingRegisterChannelType1_1" Value="UINT" />
+      <Group ID="HoldingRegisterChannelGroup2_1" />
+      <Parameter ID="HoldingRegisterChannelID2_1" Value="ACTUAL_FLOW_MSB" />
+      <Parameter ID="HoldingRegisterChannelAddress2_1" Value="2" />
+      <Parameter ID="HoldingRegisterChannelType2_1" Value="UINT" />
+      <Group ID="HoldingRegisterChannelGroup3_1" />
+      <Parameter ID="HoldingRegisterChannelID3_1" Value="ACTUAL_FLOW_LSB" />
+      <Parameter ID="HoldingRegisterChannelAddress3_1" Value="3" />
+      <Parameter ID="HoldingRegisterChannelType3_1" Value="UINT" />
       <Parameter ID="ModbusMaster" Value="0" />
     </Connector>
     <Connector Name="IF5">

@@ -82,12 +82,12 @@ _CYCLIC void Cyclic(void)
 	{
 		if (!flow_controller_initialized()) 
 		{
-			init_flow_controller(active_dut,300,2500,50,10);
+			init_flow_controller(active_dut,300,2500,25,10);
 		}
 		flow_controller_cyclic();
 	}
 
-	if(log_num < 20000 && !send_heater_on && !send_heater_off && enable_flow_controller)
+	if(log_num < 80000 && !send_heater_on && !send_heater_off && enable_flow_controller)
 	{
 		//if data is not stale, log to file
 		if(!data_is_stale(&duts[active_dut])) 
