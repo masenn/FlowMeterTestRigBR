@@ -14,7 +14,7 @@ VAR
     active_dut : UINT;
 	dut_solenoids : ARRAY[0..4] OF BOOL;
 	modbus_active_dut : UINT;
-
+	tcp_please : UINT;
 
 
 END_VAR

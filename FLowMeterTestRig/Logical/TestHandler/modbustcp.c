@@ -6,6 +6,7 @@
 #include "modbustcp.h"
 #include "modbus.h"
 #include "utils.h"
+#include <AsMbTCPS.h>
 
 //SYSTEM REGS
 _GLOBAL UINT target_flow;
@@ -41,6 +42,10 @@ _GLOBAL BOOL modbus_enable_isolation_valve;
 _GLOBAL BOOL modbus_pump_enable;
 _GLOBAL BOOL modbus_dut_solenoids[5];
 
+_LOCAL INT output_monitor;
+
+_GLOBAL UINT tcp_please;
+
 // allowing for trigger logic rather than exact control
 // modbus TCP registers are only readable from B&Rs side
 static bool coil_previous_states[NUMBER_COILS],coil_current_states[NUMBER_COILS];
@@ -50,16 +55,37 @@ void update_modbus_tcp_values(DUT_Slot_t* active_dut)
     //READ ONLY DATA
     DUT_data_to_modbus_tcp(active_dut);
     //TODO try scaled to enabled two dec places
-    modbus_flow_actual = (uint16_t)flow_actual;
-
-    // READ/WRITE DATA
+//    modbus_flow_actual = flow_actual > 0 ? (uint16_t)(int)flow_actual:0;
+	modbus_flow_actual = 0xBEEF;		
+    tcp_please = 0xBEEF;
+	memset(&tcp_please,0xBEEF,sizeof(tcp_please));
+    // UINT data_buf[128] = {0};
+    // data_buf[0] = 0xBEEF;
+    
+    // struct mbSlWordPut test = {
+    //     .startAddress = 102,
+    //     .nrOfItems = 1,
+    //     .station = "IF4.MODBUSSLAVE_1",
+    //     .data = &data_buf,
+    //     .enable = 1,
+        
+    // };
+    // mbSlWordPut(&test);
+    // output_monitor = test.status;
+    // // READ/WRITE DATA
 
     //first reading in current states 
     coil_current_states[COIL_ISOLATION_VALVE_ENABLE] = modbus_enable_isolation_valve;
     coil_current_states[COIL_PUMP_ENABLE] = modbus_pump_enable;
 
-    
+    regs_current_state[REG_TARGET_FLOW] = modbus_target_flow;
     int i;
+    for(i = COIL_DUT1; i < COIL_DUT1+5;i++)
+    {
+        coil_current_states[i] = modbus_dut_solenoids[i-COIL_DUT1];
+
+    }
+
     // detecting changes in all of the coils
     for(i = 0; i < NUMBER_COILS; i++)
     {

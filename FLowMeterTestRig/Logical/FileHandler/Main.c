@@ -130,6 +130,5 @@ int delete_file(char* file_name)
 /***** Cyclic part *****/
 _CYCLIC void Cyclic(void)
 {
-	char* file = "Test.csv";
-	test = file_exists(file);
+	
 }

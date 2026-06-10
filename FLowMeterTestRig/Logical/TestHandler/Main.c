@@ -89,7 +89,7 @@ _CYCLIC void Cyclic(void)
 		flow_controller_cyclic();
 	}
 
-	if(log_num < 80000 && !send_heater_on && !send_heater_off && enable_flow_controller)
+	if(log_num < 10000 && !send_heater_on && !send_heater_off && enable_flow_controller)
 	{
 		//if data is not stale, log to file
 		if(!data_is_stale(&duts[active_dut])) 
@@ -104,6 +104,7 @@ _CYCLIC void Cyclic(void)
 			ping_flow_controller();
 			log_num++;
 		}
+		
 		// // if(!data_is_stale(&duts[0]))
 		// {
 		// 	log_all_meters(duts);
