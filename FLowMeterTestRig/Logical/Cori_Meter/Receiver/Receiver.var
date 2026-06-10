@@ -16,4 +16,5 @@ VAR CONSTANT
 END_VAR
 VAR
 	SwappedMeasurement : ARRAY[0..3] OF USINT;
+	flow_as_real : REAL;
 END_VAR

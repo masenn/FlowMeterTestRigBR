@@ -8,7 +8,6 @@ END_PROGRAM
 (*************cyclic program********************)
 PROGRAM _CYCLIC
 
-
 	CASE Receiver.step OF
 		FRM_WAIT:	(*--- wait for command*)
 			
@@ -75,7 +74,12 @@ PROGRAM _CYCLIC
 			SwappedMeasurement[1] := Receiver.receive_data[10];
 			SwappedMeasurement[2] := Receiver.receive_data[9];
 			SwappedMeasurement[3] := Receiver.receive_data[8];
-			memcpy(ADR(flow_actual),ADR(SwappedMeasurement[0]),4);
+			//buffered the transfer due to bug experienced in flow meter sequence
+			//periodically malformed data
+			memcpy(ADR(flow_as_real),ADR(SwappedMeasurement[0]),4);
+			IF flow_as_real <> 0 THEN
+				flow_actual := flow_as_real;
+			END_IF
 			(*Parameters for FRM_rbuf()*)
 			Receiver.FRM_rbuf_0.enable := TRUE;
 			Receiver.FRM_rbuf_0.ident := Receiver.FRM_xopen_0.ident;					(*ident from FRM_xopen()*)

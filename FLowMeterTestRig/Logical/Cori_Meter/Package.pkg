@@ -4,6 +4,7 @@
   <Objects>
     <Object Type="Program" Language="IEC" Description="sending serial data">Sender</Object>
     <Object Type="Program" Language="IEC" Description="receiving serial data">Receiver</Object>
+    <Object Type="File" Private="true">Variables.var</Object>
   </Objects>
   <Dependencies>
     <Dependency ObjectName="dvframe" />
