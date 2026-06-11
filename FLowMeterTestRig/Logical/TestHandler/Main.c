@@ -12,6 +12,7 @@
 #include "logger.h"
 #include "timing.h"
 #include "flowcontroller/flowcontroller.h"
+#include "fixedaddr_modbustcp.h"
 
 #define STATE_WRITE_META_DATA
 #define STATE_UPDATE_READINGS 1
@@ -69,6 +70,7 @@ _INIT void init(void)
 	flow_meter_power_en = 1;
 	init_data_logger("test_log.csv");
 	modbus_init();
+	modbus_tcp_load_initial_states();
 	active_dut = 1;
 }
 
@@ -79,39 +81,40 @@ _CYCLIC void Cyclic(void)
 	else if (send_heater_on) set_modbus_cmd(MODBUS_CMD_HEATERON);
 	else set_modbus_cmd(MODBUS_CMD_GETDEBUG);
 	modbus_cyclic();
-	update_modbus_tcp_values(&duts[active_dut]);
-	if(enable_flow_controller) 
-	{
-		if (!flow_controller_initialized()) 
-		{
-			init_flow_controller(active_dut,300,2500,25,10);
-		}
-		flow_controller_cyclic();
-	}
+	// update_modbus_tcp_values(&duts[active_dut]);
+	update_modbus_tcp_fixed(&duts[active_dut]);
+	// if(enable_flow_controller) 
+	// {
+	// 	if (!flow_controller_initialized()) 
+	// 	{
+	// 		init_flow_controller(active_dut,300,2500,25,10);
+	// 	}
+	// 	flow_controller_cyclic();
+	// }
 
-	if(log_num < 10000 && !send_heater_on && !send_heater_off && enable_flow_controller)
-	{
-		//if data is not stale, log to file
-		if(!data_is_stale(&duts[active_dut])) 
-		{
-			//logs data to the log 
-			sys_info.flow_actual = flow_actual;
-			sys_info.target_flow = target_flow;
-			sys_info.date_time = get_time();
-			log_data_point(&sys_info,&(duts[active_dut].flow_meter_dut));
-			mark_data_as_read(&duts[active_dut]);
-			//pings the flow controller to incremenent and if # of reads is enough, continue to next flow
-			ping_flow_controller();
-			log_num++;
-		}
-		
-		// // if(!data_is_stale(&duts[0]))
-		// {
-		// 	log_all_meters(duts);
-		// 	mark_data_as_read(&duts[0]);
-		// 	log_num++;
-		// }
-	}
+	// if(log_num < 10000 && !send_heater_on && !send_heater_off && enable_flow_controller)
+	// {
+	// 	//if data is not stale, log to file
+	// 	if(!data_is_stale(&duts[active_dut])) 
+	// 	{
+	// 		//logs data to the log 
+	// 		sys_info.flow_actual = flow_actual;
+	// 		sys_info.target_flow = target_flow;
+	// 		sys_info.date_time = get_time();
+	// 		log_data_point(&sys_info,&(duts[active_dut].flow_meter_dut));
+	// 		mark_data_as_read(&duts[active_dut]);
+	// 		//pings the flow controller to incremenent and if # of reads is enough, continue to next flow
+	// 		ping_flow_controller();
+	// 		log_num++;
+	// 	}
+
+	// 	// // if(!data_is_stale(&duts[0]))
+	// 	// {
+	// 	// 	log_all_meters(duts);
+	// 	// 	mark_data_as_read(&duts[0]);
+	// 	// 	log_num++;
+	// 	// }
+	// }
 
 
 

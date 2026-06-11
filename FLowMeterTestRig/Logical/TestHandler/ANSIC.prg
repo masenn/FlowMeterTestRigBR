@@ -19,6 +19,8 @@
     <File Description="Modbus TCP">modbustcp.c</File>
     <File Description="Utilites">utils.h</File>
     <File Description="Utilites">utils.c</File>
+    <File Description="Utilites">fixedaddr_modbustcp.h</File>
+    <File Description="Utilites">fixedaddr_modbustcp.c</File>
     <File Description="Local data types" Private="true">Types.typ</File>
     <File Description="Local variables" Private="true">Variables.var</File>
   </Files>

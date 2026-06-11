@@ -46,74 +46,7 @@
       <Parameter ID="ModbusSlaveGrey" Value="1" />
       <Group ID="ModbusSlaveConfig_1" />
       <Parameter ID="ModbusSlaveTimeout_1" Value="5000" />
-      <Group ID="CoilChannelGroup1_1" />
-      <Parameter ID="CoilChannelID1_1" Value="FLOW_CONTROLLER_EN" />
-      <Parameter ID="CoilChannelAddress1_1" Value="1" />
-      <Group ID="CoilChannelGroup2_1" />
-      <Parameter ID="CoilChannelID2_1" Value="ISOLATION_ENABLE" />
-      <Parameter ID="CoilChannelAddress2_1" Value="2" />
-      <Group ID="CoilChannelGroup3_1" />
-      <Parameter ID="CoilChannelID3_1" Value="PID_EN" />
-      <Parameter ID="CoilChannelAddress3_1" Value="3" />
-      <Group ID="CoilChannelGroup4_1" />
-      <Parameter ID="CoilChannelID4_1" Value="DUT1_EN" />
-      <Parameter ID="CoilChannelAddress4_1" Value="4" />
-      <Group ID="CoilChannelGroup5_1" />
-      <Parameter ID="CoilChannelID5_1" Value="DUT2_EN" />
-      <Parameter ID="CoilChannelAddress5_1" Value="5" />
-      <Group ID="CoilChannelGroup6_1" />
-      <Parameter ID="CoilChannelID6_1" Value="DUT3_EN" />
-      <Parameter ID="CoilChannelAddress6_1" Value="6" />
-      <Group ID="CoilChannelGroup7_1" />
-      <Parameter ID="CoilChannelID7_1" Value="DUT4_EN" />
-      <Parameter ID="CoilChannelAddress7_1" Value="7" />
-      <Group ID="CoilChannelGroup8_1" />
-      <Parameter ID="CoilChannelID8_1" Value="DUT5_EN" />
-      <Parameter ID="CoilChannelAddress8_1" Value="8" />
-      <Group ID="HoldingRegisterChannelGroup1_1" />
-      <Parameter ID="HoldingRegisterChannelID1_1" Value="TARGET_FLOW" />
-      <Parameter ID="HoldingRegisterChannelAddress1_1" Value="101" />
-      <Parameter ID="HoldingRegisterChannelType1_1" Value="UINT" />
-      <Group ID="HoldingRegisterChannelGroup2_1" />
-      <Parameter ID="HoldingRegisterChannelID2_1" Value="FLOW_ACTUAL" />
-      <Parameter ID="HoldingRegisterChannelAddress2_1" Value="102" />
-      <Parameter ID="HoldingRegisterChannelType2_1" Value="UINT" />
-      <Group ID="HoldingRegisterChannelGroup3_1" />
-      <Parameter ID="HoldingRegisterChannelID3_1" Value="ACTIVE_DUT" />
-      <Parameter ID="HoldingRegisterChannelAddress3_1" Value="103" />
-      <Parameter ID="HoldingRegisterChannelType3_1" Value="UINT" />
-      <Group ID="HoldingRegisterChannelGroup4_1" />
-      <Parameter ID="HoldingRegisterChannelID4_1" Value="DUT_UP_MSB" />
-      <Parameter ID="HoldingRegisterChannelAddress4_1" Value="200" />
-      <Parameter ID="HoldingRegisterChannelType4_1" Value="UINT" />
-      <Group ID="HoldingRegisterChannelGroup5_1" />
-      <Parameter ID="HoldingRegisterChannelID5_1" Value="DUT_UP_LSB" />
-      <Parameter ID="HoldingRegisterChannelAddress5_1" Value="201" />
-      <Parameter ID="HoldingRegisterChannelType5_1" Value="UINT" />
-      <Group ID="HoldingRegisterChannelGroup6_1" />
-      <Parameter ID="HoldingRegisterChannelID6_1" Value="DUT_DOWN_MSB" />
-      <Parameter ID="HoldingRegisterChannelAddress6_1" Value="202" />
-      <Parameter ID="HoldingRegisterChannelType6_1" Value="UINT" />
-      <Group ID="HoldingRegisterChannelGroup7_1" />
-      <Parameter ID="HoldingRegisterChannelID7_1" Value="DUT_DOWN_LSB" />
-      <Parameter ID="HoldingRegisterChannelAddress7_1" Value="203" />
-      <Parameter ID="HoldingRegisterChannelType7_1" Value="UINT" />
-      <Group ID="HoldingRegisterChannelGroup8_1" />
-      <Parameter ID="HoldingRegisterChannelID8_1" Value="DUT_AMB_MSB" />
-      <Parameter ID="HoldingRegisterChannelAddress8_1" Value="204" />
-      <Parameter ID="HoldingRegisterChannelType8_1" Value="UINT" />
-      <Group ID="HoldingRegisterChannelGroup9_1" />
-      <Parameter ID="HoldingRegisterChannelID9_1" Value="DUT_AMB_LSB" />
-      <Parameter ID="HoldingRegisterChannelAddress9_1" Value="205" />
-      <Parameter ID="HoldingRegisterChannelType9_1" Value="UINT" />
-      <Group ID="HoldingRegisterChannelGroup10_1" />
-      <Parameter ID="HoldingRegisterChannelID10_1" Value="DUT_SYS_MSB" />
-      <Parameter ID="HoldingRegisterChannelAddress10_1" Value="206" />
-      <Parameter ID="HoldingRegisterChannelType10_1" Value="UINT" />
-      <Group ID="HoldingRegisterChannelGroup11_1" />
-      <Parameter ID="HoldingRegisterChannelID11_1" Value="DUT_SYS_LSB" />
-      <Parameter ID="HoldingRegisterChannelAddress11_1" Value="207" />
-      <Parameter ID="HoldingRegisterChannelType11_1" Value="UINT" />
+      <Parameter ID="ModbusSlaveAddressType_1" Value="FixedSize" />
       <Parameter ID="ModbusMaster" Value="0" />
     </Connector>
     <Connector Name="IF5">

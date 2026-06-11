@@ -1,14 +1,18 @@
 import tkinter as tk
+from tkinter import ttk
 import threading
+import random
 import struct
+from collections import deque
+import time
 from pyModbusTCP.client import ModbusClient
 
 # Modbus client
 c = ModbusClient(host='172.16.100.50', port=502, unit_id=1, auto_open=True, auto_close=True)
 
-POLL_INTERVAL_MS = 500  # poll every 500ms
+POLL_INTERVAL_MS = 250
+MAX_HISTORY = 1000
 
-# Coil definitions: (label, coil_address)
 COILS = [
     ("Flow Controller",     1),
     ("Isolation Valve",     2),
@@ -20,127 +24,224 @@ COILS = [
     ("DUT 5 Solenoid",      8),
 ]
 
-# Holding register addresses
-REG_TARGET_FLOW  = 101
-REG_FLOW_ACTUAL  = 102
-REG_DUT_UP_MSB   = 200
-REG_DUT_UP_LSB   = 201
-REG_DUT_DOWN_MSB = 202
-REG_DUT_DOWN_LSB = 203
-REG_DUT_AMB_MSB  = 204
-REG_DUT_AMB_LSB  = 205
-REG_DUT_SYS_MSB  = 206
-REG_DUT_SYS_LSB  = 207
+HOLDING_ADDRESS_BASE = 24576
+COIL_ADDRESS_BASE    = 16384
 
-# Colors
-BG       = "#1a1e2e"
-PANEL    = "#232842"
-ACCENT   = "#4f8ef7"
-ON_COLOR = "#2ecc71"
-OFF_COLOR= "#e74c3c"
-TEXT     = "#e8eaf0"
-SUBTEXT  = "#7a80a0"
-BORDER   = "#2e3450"
-ENTRY_BG = "#2e3450"
+REG_TARGET_FLOW  = HOLDING_ADDRESS_BASE + 1
+REG_FLOW_ACTUAL  = HOLDING_ADDRESS_BASE 
+REG_DUT_UP_MSB   = HOLDING_ADDRESS_BASE + 0x10
+REG_DUT_UP_LSB   = HOLDING_ADDRESS_BASE + 0x11
+REG_DUT_DOWN_MSB = HOLDING_ADDRESS_BASE + 0x12
+REG_DUT_DOWN_LSB = HOLDING_ADDRESS_BASE + 0x13
+REG_DUT_AMB_MSB  = HOLDING_ADDRESS_BASE + 0x14
+REG_DUT_AMB_LSB  = HOLDING_ADDRESS_BASE + 0x15
+REG_DUT_SYS_MSB  = HOLDING_ADDRESS_BASE + 0x16
+REG_DUT_SYS_LSB  = HOLDING_ADDRESS_BASE + 0x17
+
+# Palette
+BG        = "#1a1e2e"
+PANEL     = "#232842"
+ACCENT    = "#4f8ef7"
+ON_COLOR  = "#2ecc71"
+OFF_COLOR = "#e74c3c"
+TEXT      = "#e8eaf0"
+SUBTEXT   = "#7a80a0"
+BORDER    = "#2e3450"
+ENTRY_BG  = "#2e3450"
+WARN      = "#f39c12"
+
+C_UP   = "#4f8ef7"
+C_DOWN = "#2ecc71"
+C_AMB  = "#f39c12"
+C_FLOW = "#e74c3c"
+
+# History buffers
+history_up   = deque(maxlen=MAX_HISTORY)
+history_down = deque(maxlen=MAX_HISTORY)
+history_amb  = deque(maxlen=MAX_HISTORY)
+history_flow = deque(maxlen=MAX_HISTORY)
 
 
 def msb_lsb_to_float(msb: int, lsb: int) -> float:
-    """Combine two 16-bit unsigned registers into an IEEE 754 float (big-endian word order)."""
     raw = ((msb & 0xFFFF) << 16) | (lsb & 0xFFFF)
     return struct.unpack('>f', struct.pack('>I', raw))[0]
 
 
 def read_initial_state() -> dict:
-    """
-    Read all coils and registers once at startup.
-    Returns a dict with coil states, target_flow, flow_actual, and dut_regs.
-    Any failed read leaves that key as None — UI shows --- for missing values.
-    """
-    state = {
-        'coils': None,
-        'target_flow': None,
-        'flow_actual': None,
-        'dut_regs': None,
-    }
+    state = {'coils': None, 'target_flow': None, 'flow_actual': None, 'dut_regs': None}
     try:
-        coils = c.read_coils(1, 8)
+        coils = c.read_coils(COIL_ADDRESS_BASE, 8)
         if coils and len(coils) == 8:
             state['coils'] = coils
-
         target = c.read_holding_registers(REG_TARGET_FLOW, 1)
         if target:
             state['target_flow'] = target[0]
-
         flow = c.read_holding_registers(REG_FLOW_ACTUAL, 1)
         if flow:
             state['flow_actual'] = float(flow[0])
-
         dut = c.read_holding_registers(REG_DUT_UP_MSB, 8)
         if dut and len(dut) == 8:
             state['dut_regs'] = dut
-
     except Exception:
         pass
-
     return state
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+#  TEST INFRASTRUCTURE
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestContext:
+    """
+    Passed into every test function.
+    Provides hardware access, stop signalling, and UI logging.
+    """
+    def __init__(self, log_fn, stop_event: threading.Event):
+        self._log   = log_fn
+        self._stop  = stop_event
+
+    # Logging
+    def log(self, msg: str):
+        """Append a timestamped line to the test log panel."""
+        ts = time.strftime("%H:%M:%S")
+        self._log(f"[{ts}]  {msg}")
+
+    # Stop signal
+    @property
+    def stopped(self) -> bool:
+        """True if the user pressed STOP. Poll inside loops."""
+        return self._stop.is_set()
+
+    def sleep(self, seconds: float):
+        """Interruptible sleep — returns early if stopped."""
+        deadline = time.time() + seconds
+        while time.time() < deadline:
+            if self.stopped:
+                return
+            time.sleep(0.05)
+
+    # Modbus helpers
+    def set_target_flow(self, value: int):
+        c.write_single_register(REG_TARGET_FLOW, value)
+
+    def read_flow_actual(self) -> float:
+        reg = c.read_holding_registers(REG_FLOW_ACTUAL, 1)
+        if reg and reg[0] < 40000:
+            return reg[0] / 10.0
+        return 0.0
+
+    def set_coil(self, coil_index: int, state: bool):
+        """Set coil by 0-based index."""
+        c.write_single_coil(coil_index + COIL_ADDRESS_BASE - 1, state)
+
+    def read_coils_all(self):
+        return c.read_coils(COIL_ADDRESS_BASE, 8)
+
+    def read_dut_regs(self):
+        return c.read_holding_registers(REG_DUT_UP_MSB, 8)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  TEST DEFINITIONS  —  add your tests here
+#  Signature: (ctx: TestContext) -> None
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _test_flow_ramp(ctx: TestContext):
+    """Skeleton: ramp target flow up and down in steps."""
+    ctx.log("Flow ramp — implement me")
+    # TODO: example structure —
+    steps = range(300, 2500, 100)
+    for flow in steps:
+        if ctx.stopped:
+            return
+        ctx.set_target_flow(flow)
+        ctx.sleep(10)
+        ctx.log(f'Current flow: {ctx.read_flow_actual()}')
+    ctx.log("Flow ramp done")
+
+
+def _test_coil_sequence(ctx: TestContext):
+    """Skeleton: exercise coils in sequence."""
+    ctx.log("Coil sequence — implement me")
+    # TODO: step through coils, set/clear, verify state
+    ctx.log("Coil sequence done")
+
+
+def _test_dut_cycle(ctx: TestContext):
+    """Skeleton: open each DUT solenoid and capture readings."""
+    ctx.log("DUT cycle — implement me")
+    # TODO: for each DUT solenoid, enable it, dwell, read DUT regs, disable
+    ctx.log("DUT cycle done")
+
+
+def _test_steady_state(ctx: TestContext):
+    """Skeleton: hold a setpoint and log stability over time."""
+    ctx.log("Steady state — implement me")
+    # TODO: set flow, wait for settle, sample over window, compute stddev
+    ctx.log("Steady state done")
+
+
+# Registry: (display name, function)
+TESTS = [
+    ("Flow Ramp",       _test_flow_ramp),
+    ("Coil Sequence",   _test_coil_sequence),
+    ("DUT Cycle",       _test_dut_cycle),
+    ("Steady State",    _test_steady_state),
+]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  WIDGETS
+# ─────────────────────────────────────────────────────────────────────────────
+
 class ReadingRow(tk.Frame):
-    """A read-only display row for a polled float value."""
     def __init__(self, parent, label, reg_addr, **kwargs):
         super().__init__(parent, bg=PANEL, **kwargs)
         self.configure(highlightbackground=BORDER, highlightthickness=1, padx=16, pady=10)
-
         left = tk.Frame(self, bg=PANEL)
         left.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
         tk.Label(left, text=label, bg=PANEL, fg=TEXT,
                  font=("Helvetica", 11, "bold"), anchor="w").pack(anchor="w")
         tk.Label(left, text=f"Reg  {reg_addr} / {reg_addr+1}", bg=PANEL, fg=SUBTEXT,
                  font=("Courier", 9), anchor="w").pack(anchor="w")
-
         self.value_label = tk.Label(self, text="---", bg=PANEL, fg=ACCENT,
                                     font=("Courier", 13, "bold"), anchor="e")
         self.value_label.pack(side=tk.RIGHT)
 
     def update_value(self, val: float):
-        self.value_label.config(text=f"{val:.4f}")
+        self.value_label.config(text=f"{val:.6f}")
 
 
 class TargetFlowRow(tk.Frame):
-    """Editable row for target flow (single UINT register)."""
     def __init__(self, parent, initial_value=0, **kwargs):
         super().__init__(parent, bg=PANEL, **kwargs)
         self.configure(highlightbackground=BORDER, highlightthickness=1, padx=16, pady=10)
-
         left = tk.Frame(self, bg=PANEL)
         left.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
         tk.Label(left, text="Target Flow", bg=PANEL, fg=TEXT,
                  font=("Helvetica", 11, "bold"), anchor="w").pack(anchor="w")
         tk.Label(left, text=f"Reg  {REG_TARGET_FLOW}", bg=PANEL, fg=SUBTEXT,
                  font=("Courier", 9), anchor="w").pack(anchor="w")
-
         right = tk.Frame(self, bg=PANEL)
         right.pack(side=tk.RIGHT, padx=(12, 0))
-
         self.entry = tk.Entry(right, width=8, bg=ENTRY_BG, fg=TEXT, insertbackground=TEXT,
                               font=("Courier", 12), relief=tk.FLAT, justify="right")
         self.entry.pack(side=tk.LEFT, padx=(0, 8))
         self.entry.insert(0, str(initial_value))
-
         self.send_btn = tk.Button(right, text="Set", bg=ACCENT, fg="white",
                                   font=("Helvetica", 10, "bold"), relief=tk.FLAT,
                                   padx=10, pady=4, cursor="hand2",
                                   activebackground="#3a7de0", activeforeground="white",
                                   command=self.send)
         self.send_btn.pack(side=tk.LEFT)
-
         self.status = tk.Label(right, text="", bg=PANEL, fg=SUBTEXT,
                                font=("Helvetica", 8), width=4)
         self.status.pack(side=tk.LEFT, padx=(6, 0))
-
         self.entry.bind("<Return>", lambda e: self.send())
+
+    def update_value(self, val: float):
+        self.entry.delete(0,tk.END)
+        self.entry.insert(0,f'{val:.1f}')
 
     def send(self):
         try:
@@ -150,12 +251,10 @@ class TargetFlowRow(tk.Frame):
         except ValueError:
             self.status.config(text="ERR", fg=OFF_COLOR)
             return
-
         success = c.write_single_register(REG_TARGET_FLOW, val)
-        if success:
-            self.status.config(text="OK", fg=ON_COLOR)
-        else:
-            self.status.config(text="FAIL", fg=OFF_COLOR)
+        print(f'Wrote {self.entry.get()} to {REG_TARGET_FLOW}')
+        self.status.config(text="OK" if success else "FAIL",
+                           fg=ON_COLOR if success else OFF_COLOR)
         self.after(2000, lambda: self.status.config(text=""))
 
 
@@ -164,26 +263,21 @@ class CoilToggle(tk.Frame):
         super().__init__(parent, bg=PANEL, **kwargs)
         self.address = address
         self.state = initial_state
+        self._write_pending = False
         self.configure(highlightbackground=BORDER, highlightthickness=1, padx=16, pady=12)
-
         left = tk.Frame(self, bg=PANEL)
         left.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
         tk.Label(left, text=label, bg=PANEL, fg=TEXT,
                  font=("Helvetica", 11, "bold"), anchor="w").pack(anchor="w")
         tk.Label(left, text=f"Coil  {address}", bg=PANEL, fg=SUBTEXT,
                  font=("Courier", 9), anchor="w").pack(anchor="w")
-
         right = tk.Frame(self, bg=PANEL)
         right.pack(side=tk.RIGHT, padx=(12, 0))
-
-        init_text = "ON" if initial_state else "OFF"
+        init_text  = "ON"  if initial_state else "OFF"
         init_color = ON_COLOR if initial_state else OFF_COLOR
-
         self.status_label = tk.Label(right, text=init_text, bg=init_color, fg="white",
                                      font=("Helvetica", 9, "bold"), width=5, pady=2, padx=6)
         self.status_label.pack(side=tk.LEFT, padx=(0, 10))
-
         self.btn = tk.Button(right, text="Toggle", bg=ACCENT, fg="white",
                              font=("Helvetica", 10, "bold"), relief=tk.FLAT,
                              padx=12, pady=4, cursor="hand2",
@@ -193,14 +287,86 @@ class CoilToggle(tk.Frame):
 
     def toggle(self):
         self.state = not self.state
-        success = c.write_single_coil(self.address, self.state)
+        self._write_pending = True
+        success = c.write_single_coil(self.address + COIL_ADDRESS_BASE - 1, self.state)
         if success:
             self.status_label.config(text="ON" if self.state else "OFF",
                                      bg=ON_COLOR if self.state else OFF_COLOR)
+            self.after(1000, self._clear_pending)
         else:
             self.state = not self.state
+            self._write_pending = False
             self.status_label.config(text="ERR", bg="#e67e22")
 
+    def _clear_pending(self):
+        self._write_pending = False
+
+    def update_from_poll(self, state: bool):
+        if self._write_pending:
+            return
+        self.state = state
+        self.status_label.config(text="ON" if state else "OFF",
+                                 bg=ON_COLOR if state else OFF_COLOR)
+
+
+class SparkGraph(tk.Frame):
+    W = 340
+    H = 120
+    PAD = 8
+
+    def __init__(self, parent, label, color, data_deque, **kwargs):
+        super().__init__(parent, bg=PANEL, **kwargs)
+        self.configure(highlightbackground=BORDER, highlightthickness=1)
+        self.color = color
+        self.data  = data_deque
+        header = tk.Frame(self, bg=PANEL)
+        header.pack(fill=tk.X, padx=10, pady=(8, 0))
+        tk.Label(header, text=label, bg=PANEL, fg=TEXT,
+                 font=("Helvetica", 10, "bold")).pack(side=tk.LEFT)
+        self.live_label = tk.Label(header, text="---", bg=PANEL, fg=color,
+                                   font=("Courier", 11, "bold"))
+        self.live_label.pack(side=tk.RIGHT)
+        self.canvas = tk.Canvas(self, bg=PANEL, width=self.W, height=self.H,
+                                highlightthickness=0)
+        self.canvas.pack(padx=10, pady=(4, 8))
+        self._draw()
+
+    def update(self):
+        self._draw()
+
+    def _draw(self):
+        cv = self.canvas
+        cv.delete("all")
+        data = list(self.data)
+        if not data:
+            return
+        self.live_label.config(text=f"{data[-1]:.4f}")
+        for frac in (0.25, 0.5, 0.75):
+            y = self.PAD + frac * (self.H - 2 * self.PAD)
+            cv.create_line(0, y, self.W, y, fill=BORDER, width=1)
+        mn, mx = min(data), max(data)
+        rng = mx - mn if mx != mn else 1.0
+
+        def px(i):
+            return self.PAD + i * (self.W - 2 * self.PAD) / max(len(data) - 1, 1)
+        def py(v):
+            return self.H - self.PAD - (v - mn) / rng * (self.H - 2 * self.PAD)
+
+        pts = []
+        for i, v in enumerate(data):
+            pts += [px(i), py(v)]
+        fill_pts = [self.PAD, self.H - self.PAD] + pts + [px(len(data)-1), self.H - self.PAD]
+        cv.create_polygon(fill_pts, fill=self.color, stipple="gray25", outline="")
+        if len(data) >= 2:
+            cv.create_line(pts, fill=self.color, width=2, smooth=True)
+        cv.create_text(self.W - 2, self.PAD,          anchor="ne", text=f"{mx:.3f}", fill=SUBTEXT, font=("Courier", 7))
+        cv.create_text(self.W - 2, self.H - self.PAD, anchor="se", text=f"{mn:.3f}", fill=SUBTEXT, font=("Courier", 7))
+        cv.create_text(2,          self.H // 2,        anchor="w",  text=f"{len(data)}", fill=SUBTEXT, font=("Courier", 7))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  MAIN APP
+# ─────────────────────────────────────────────────────────────────────────────
 
 class App(tk.Tk):
     def __init__(self, initial_state: dict):
@@ -208,64 +374,65 @@ class App(tk.Tk):
         self.title("Flow Rig Control")
         self.configure(bg=BG)
         self.resizable(True, True)
-        self.minsize(460, 500)
-
-        self.rowconfigure(2, weight=1)
+        self.minsize(500, 560)
+        self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
+
+        self._test_thread   = None
+        self._test_stop     = threading.Event()
 
         connected = any(v is not None for v in initial_state.values())
 
-        # ── Header ──────────────────────────────────────────
-        header = tk.Frame(self, bg=BG, pady=16, padx=24)
-        header.grid(row=0, column=0, sticky="ew")
+        style = ttk.Style(self)
+        style.theme_use("default")
+        style.configure("TNotebook",      background=BG, borderwidth=0)
+        style.configure("TNotebook.Tab",  background=PANEL, foreground=SUBTEXT,
+                        padding=[14, 6],  font=("Helvetica", 9, "bold"))
+        style.map("TNotebook.Tab",
+                  background=[("selected", BG)],
+                  foreground=[("selected", ACCENT)])
 
+        nb = ttk.Notebook(self)
+        nb.grid(row=0, column=0, sticky="nsew")
+
+        # ── Tab 1: Control ───────────────────────────────────────────────────
+        tab_ctrl = tk.Frame(nb, bg=BG)
+        tab_ctrl.rowconfigure(1, weight=1)
+        tab_ctrl.columnconfigure(0, weight=1)
+        nb.add(tab_ctrl, text="  Control  ")
+
+        header = tk.Frame(tab_ctrl, bg=BG, pady=14, padx=24)
+        header.grid(row=0, column=0, sticky="ew")
         tk.Label(header, text="FLOW RIG CONTROL", bg=BG, fg=ACCENT,
                  font=("Helvetica", 9, "bold")).pack(anchor="w")
         tk.Label(header, text="Flow Rig", bg=BG, fg=TEXT,
                  font=("Helvetica", 18, "bold")).pack(anchor="w")
-
-        # Connection status in header
         conn_color = ON_COLOR if connected else OFF_COLOR
-        conn_text  = "172.16.100.50 : 502  ·  Connected" if connected else "172.16.100.50 : 502  ·  No connection at startup"
+        conn_text  = "172.16.100.50 : 502  ·  Connected" if connected else \
+                     "172.16.100.50 : 502  ·  No connection at startup"
         tk.Label(header, text=conn_text, bg=BG, fg=conn_color,
                  font=("Courier", 9)).pack(anchor="w")
+        tk.Frame(tab_ctrl, bg=BORDER, height=1).grid(row=0, column=0, sticky="sew", padx=24)
 
-        tk.Frame(self, bg=BORDER, height=1).grid(row=1, column=0, sticky="ew", padx=24)
-
-        # ── Scrollable body ──────────────────────────────────
-        outer = tk.Frame(self, bg=BG)
-        outer.grid(row=2, column=0, sticky="nsew")
+        outer = tk.Frame(tab_ctrl, bg=BG)
+        outer.grid(row=1, column=0, sticky="nsew")
         outer.rowconfigure(0, weight=1)
         outer.columnconfigure(0, weight=1)
-
         canvas = tk.Canvas(outer, bg=BG, highlightthickness=0)
         scrollbar = tk.Scrollbar(outer, orient="vertical", command=canvas.yview)
         canvas.configure(yscrollcommand=scrollbar.set)
         canvas.grid(row=0, column=0, sticky="nsew")
         scrollbar.grid(row=0, column=1, sticky="ns")
-
         container = tk.Frame(canvas, bg=BG, padx=24, pady=16)
-        container_window = canvas.create_window((0, 0), window=container, anchor="nw")
+        cw = canvas.create_window((0, 0), window=container, anchor="nw")
+        canvas.bind("<Configure>", lambda e: canvas.itemconfig(cw, width=e.width))
+        container.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.bind_all("<MouseWheel>", lambda e: canvas.yview_scroll(int(-1*(e.delta/120)), "units"))
 
-        def on_canvas_resize(event):
-            canvas.itemconfig(container_window, width=event.width)
-        canvas.bind("<Configure>", on_canvas_resize)
-
-        def on_frame_configure(event):
-            canvas.configure(scrollregion=canvas.bbox("all"))
-        container.bind("<Configure>", on_frame_configure)
-
-        def on_mousewheel(event):
-            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-        canvas.bind_all("<MouseWheel>", on_mousewheel)
-
-        # ── Section: Readings ────────────────────────────────
         self._section_label(container, "READINGS")
-
         init_target = initial_state['target_flow'] or 0
         self.target_flow_row = TargetFlowRow(container, initial_value=init_target)
         self.target_flow_row.pack(fill=tk.X, pady=4)
-
         self.flow_actual_row = ReadingRow(container, "Flow Actual", REG_FLOW_ACTUAL)
         self.flow_actual_row.pack(fill=tk.X, pady=4)
         if initial_state['flow_actual'] is not None:
@@ -284,45 +451,236 @@ class App(tk.Tk):
             self.dut_rows[msb_addr] = row
             if initial_state['dut_regs'] is not None:
                 regs = initial_state['dut_regs']
-                row.update_value(msb_lsb_to_float(regs[offset], regs[offset + 1]))
+                row.update_value(msb_lsb_to_float(regs[offset], regs[offset+1]))
 
-        # ── Section: Coils ───────────────────────────────────
         self._section_label(container, "COILS")
-
+        self.coil_toggles = []
         coil_states = initial_state['coils'] or [False] * 8
         for i, (label, addr) in enumerate(COILS):
-            CoilToggle(container, label, addr,
-                       initial_state=coil_states[i]).pack(fill=tk.X, pady=4)
+            toggle = CoilToggle(container, label, addr, initial_state=coil_states[i])
+            toggle.pack(fill=tk.X, pady=4)
+            self.coil_toggles.append(toggle)
 
-        # ── Footer ───────────────────────────────────────────
-        tk.Frame(self, bg=BORDER, height=1).grid(row=3, column=0, sticky="ew", padx=24)
+        tk.Frame(tab_ctrl, bg=BORDER, height=1).grid(row=2, column=0, sticky="ew", padx=24)
+        self.poll_status = tk.Label(tab_ctrl, text="Starting poll...", bg=BG, fg=SUBTEXT,
+                                    font=("Helvetica", 8), pady=6)
+        self.poll_status.grid(row=3, column=0)
 
-        self.poll_status = tk.Label(self, text="Starting poll...", bg=BG, fg=SUBTEXT,
-                                    font=("Helvetica", 8), pady=8)
-        self.poll_status.grid(row=4, column=0)
+        # ── Tab 2: Graphs ────────────────────────────────────────────────────
+        tab_graph = tk.Frame(nb, bg=BG)
+        tab_graph.rowconfigure(1, weight=1)
+        tab_graph.columnconfigure(0, weight=1)
+        tab_graph.columnconfigure(1, weight=1)
+        nb.add(tab_graph, text="  Graphs  ")
+
+        live_bar = tk.Frame(tab_graph, bg=PANEL, pady=10)
+        live_bar.grid(row=0, column=0, columnspan=2, sticky="ew")
+        tk.Label(live_bar, text="ACTUAL FLOW", bg=PANEL, fg=SUBTEXT,
+                 font=("Helvetica", 8, "bold")).pack(side=tk.LEFT, padx=(20, 8))
+        self.flow_live_big = tk.Label(live_bar, text="---", bg=PANEL, fg=C_FLOW,
+                                      font=("Courier", 22, "bold"))
+        self.flow_live_big.pack(side=tk.LEFT)
+        tk.Label(live_bar, text="units", bg=PANEL, fg=SUBTEXT,
+                 font=("Helvetica", 9)).pack(side=tk.LEFT, padx=(4, 0))
+        self.graph_poll_status = tk.Label(live_bar, text="", bg=PANEL, fg=SUBTEXT,
+                                          font=("Helvetica", 8))
+        self.graph_poll_status.pack(side=tk.RIGHT, padx=20)
+
+        graph_frame = tk.Frame(tab_graph, bg=BG)
+        graph_frame.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=16, pady=16)
+        for i in range(2):
+            graph_frame.rowconfigure(i, weight=1)
+            graph_frame.columnconfigure(i, weight=1)
+
+        self.graph_up   = SparkGraph(graph_frame, "DUT Upstream",   C_UP,   history_up)
+        self.graph_down = SparkGraph(graph_frame, "DUT Downstream", C_DOWN, history_down)
+        self.graph_amb  = SparkGraph(graph_frame, "DUT Ambient",    C_AMB,  history_amb)
+        self.graph_flow = SparkGraph(graph_frame, "Flow Actual",    C_FLOW, history_flow)
+        self.graph_up.grid  (row=0, column=0, padx=6, pady=6, sticky="nsew")
+        self.graph_down.grid(row=0, column=1, padx=6, pady=6, sticky="nsew")
+        self.graph_amb.grid (row=1, column=0, padx=6, pady=6, sticky="nsew")
+        self.graph_flow.grid(row=1, column=1, padx=6, pady=6, sticky="nsew")
+
+        # ── Tab 3: Tests ─────────────────────────────────────────────────────
+        tab_test = tk.Frame(nb, bg=BG)
+        tab_test.rowconfigure(1, weight=1)
+        tab_test.columnconfigure(0, weight=1)
+        nb.add(tab_test, text="  Tests  ")
+
+        # Header bar
+        test_header = tk.Frame(tab_test, bg=BG, pady=14, padx=24)
+        test_header.grid(row=0, column=0, sticky="ew")
+        tk.Label(test_header, text="TEST RUNNER", bg=BG, fg=ACCENT,
+                 font=("Helvetica", 9, "bold")).pack(anchor="w")
+        tk.Label(test_header, text="Flow Rig Tests", bg=BG, fg=TEXT,
+                 font=("Helvetica", 18, "bold")).pack(anchor="w")
+        tk.Frame(tab_test, bg=BORDER, height=1).grid(row=0, column=0, sticky="sew", padx=24)
+
+        # Body: test list left, log right
+        body = tk.Frame(tab_test, bg=BG)
+        body.grid(row=1, column=0, sticky="nsew", padx=16, pady=12)
+        body.rowconfigure(0, weight=1)
+        body.columnconfigure(1, weight=1)
+
+        # Left: test selector
+        left_panel = tk.Frame(body, bg=PANEL,
+                              highlightbackground=BORDER, highlightthickness=1)
+        left_panel.grid(row=0, column=0, sticky="ns", padx=(0, 8))
+
+        tk.Label(left_panel, text="SELECT TEST", bg=PANEL, fg=SUBTEXT,
+                 font=("Helvetica", 8, "bold"), padx=14, pady=8).pack(anchor="w")
+        tk.Frame(left_panel, bg=BORDER, height=1).pack(fill=tk.X)
+
+        self._test_var = tk.StringVar(value=TESTS[0][0])
+        for name, _ in TESTS:
+            rb = tk.Radiobutton(left_panel, text=name, variable=self._test_var,
+                                value=name, bg=PANEL, fg=TEXT, selectcolor=ENTRY_BG,
+                                activebackground=PANEL, activeforeground=ACCENT,
+                                font=("Helvetica", 10), padx=14, pady=6,
+                                indicatoron=True)
+            rb.pack(anchor="w", fill=tk.X)
+
+        tk.Frame(left_panel, bg=BORDER, height=1).pack(fill=tk.X, pady=(8, 0))
+
+        btn_row = tk.Frame(left_panel, bg=PANEL, padx=12, pady=10)
+        btn_row.pack(fill=tk.X)
+
+        self._run_btn = tk.Button(btn_row, text="▶  Run", bg=ON_COLOR, fg="white",
+                                  font=("Helvetica", 10, "bold"), relief=tk.FLAT,
+                                  padx=12, pady=6, cursor="hand2",
+                                  command=self._run_test)
+        self._run_btn.pack(side=tk.LEFT, padx=(0, 6))
+
+        self._stop_btn = tk.Button(btn_row, text="■  Stop", bg=OFF_COLOR, fg="white",
+                                   font=("Helvetica", 10, "bold"), relief=tk.FLAT,
+                                   padx=12, pady=6, cursor="hand2", state=tk.DISABLED,
+                                   command=self._stop_test)
+        self._stop_btn.pack(side=tk.LEFT)
+
+        self._test_status = tk.Label(left_panel, text="Idle", bg=PANEL, fg=SUBTEXT,
+                                     font=("Helvetica", 8), pady=4)
+        self._test_status.pack()
+
+        # Right: log output
+        right_panel = tk.Frame(body, bg=PANEL,
+                               highlightbackground=BORDER, highlightthickness=1)
+        right_panel.grid(row=0, column=1, sticky="nsew")
+        right_panel.rowconfigure(1, weight=1)
+        right_panel.columnconfigure(0, weight=1)
+
+        log_header = tk.Frame(right_panel, bg=PANEL)
+        log_header.grid(row=0, column=0, columnspan=2, sticky="ew", padx=14, pady=(8, 4))
+        tk.Label(log_header, text="TEST LOG", bg=PANEL, fg=SUBTEXT,
+                 font=("Helvetica", 8, "bold")).pack(side=tk.LEFT)
+        tk.Button(log_header, text="Clear", bg=ENTRY_BG, fg=SUBTEXT,
+                  font=("Helvetica", 8), relief=tk.FLAT, padx=6, pady=2,
+                  cursor="hand2", command=self._clear_log).pack(side=tk.RIGHT)
+
+        tk.Frame(right_panel, bg=BORDER, height=1).grid(row=0, column=0,
+                                                         columnspan=2, sticky="sew", padx=0)
+
+        self._log_text = tk.Text(right_panel, bg=PANEL, fg=TEXT,
+                                 font=("Courier", 9), relief=tk.FLAT,
+                                 wrap=tk.WORD, state=tk.DISABLED,
+                                 insertbackground=TEXT, padx=12, pady=8)
+        log_scroll = tk.Scrollbar(right_panel, orient="vertical",
+                                  command=self._log_text.yview)
+        self._log_text.configure(yscrollcommand=log_scroll.set)
+        self._log_text.grid(row=1, column=0, sticky="nsew")
+        log_scroll.grid(row=1, column=1, sticky="ns")
+
+        # Footer
+        tk.Frame(tab_test, bg=BORDER, height=1).grid(row=2, column=0, sticky="ew", padx=24)
+
+        #faciliates focus shifting        
+        self.bind_all("<Button-1>", lambda event: event.widget.focus_set())
 
         self.after(100, self._poll)
+
+    # ── Helpers ───────────────────────────────────────────────────────────────
 
     def _section_label(self, parent, text):
         tk.Label(parent, text=text, bg=BG, fg=SUBTEXT,
                  font=("Helvetica", 8, "bold"), anchor="w").pack(fill=tk.X, pady=(8, 2))
 
+    def _append_log(self, msg: str):
+        self._log_text.configure(state=tk.NORMAL)
+        self._log_text.insert(tk.END, msg + "\n")
+        self._log_text.see(tk.END)
+        self._log_text.configure(state=tk.DISABLED)
+
+    def _clear_log(self):
+        self._log_text.configure(state=tk.NORMAL)
+        self._log_text.delete("1.0", tk.END)
+        self._log_text.configure(state=tk.DISABLED)
+
+    # ── Test runner ───────────────────────────────────────────────────────────
+
+    def _run_test(self):
+        if self._test_thread and self._test_thread.is_alive():
+            return
+
+        name = self._test_var.get()
+        fn   = next(f for n, f in TESTS if n == name)
+
+        self._test_stop.clear()
+        self._run_btn.config(state=tk.DISABLED)
+        self._stop_btn.config(state=tk.NORMAL)
+        self._test_status.config(text=f"Running: {name}", fg=WARN)
+        self._append_log(f"{'─'*40}")
+        self._append_log(f"START  {name}")
+        self._append_log(f"{'─'*40}")
+
+        ctx = TestContext(
+            log_fn     = lambda msg: self.after(0, lambda m=msg: self._append_log(m)),
+            stop_event = self._test_stop,
+        )
+
+        def _worker():
+            try:
+                fn(ctx)
+                result = "STOPPED" if ctx.stopped else "COMPLETE"
+            except Exception as e:
+                result = f"ERROR: {e}"
+            self.after(0, lambda r=result: self._on_test_done(r))
+
+        self._test_thread = threading.Thread(target=_worker, daemon=True)
+        self._test_thread.start()
+
+    def _stop_test(self):
+        self._test_stop.set()
+
+    def _on_test_done(self, result: str):
+        color = ON_COLOR if result == "COMPLETE" else OFF_COLOR
+        self._append_log(f"{'─'*40}")
+        self._append_log(f"RESULT  {result}")
+        self._run_btn.config(state=tk.NORMAL)
+        self._stop_btn.config(state=tk.DISABLED)
+        self._test_status.config(text=result, fg=color)
+
+    # ── Poll ──────────────────────────────────────────────────────────────────
+
     def _poll(self):
         def fetch():
             try:
                 dut_regs = c.read_holding_registers(REG_DUT_UP_MSB, 8)
-                flow_reg = c.read_holding_registers(REG_FLOW_ACTUAL, 1)
+                flow_reg = c.read_holding_registers(REG_FLOW_ACTUAL, 2)
+                coil_reg = c.read_coils(COIL_ADDRESS_BASE, 8)
 
                 results = {}
-
-                if flow_reg:
-                    results['flow_actual'] = float(flow_reg[0])
-
+                if flow_reg and flow_reg[0] < 40000:
+                    results['flow_actual'] = flow_reg[0] / 10
+                    # print(f'Trying to update: {flow_reg[1]}')
+                    results['target_flow'] = flow_reg[1]
+                else:
+                    results['flow_actual'] = 0.0
                 if dut_regs and len(dut_regs) == 8:
-                    results[REG_DUT_UP_MSB]  = msb_lsb_to_float(dut_regs[0], dut_regs[1])
+                    results[REG_DUT_UP_MSB]   = msb_lsb_to_float(dut_regs[0], dut_regs[1])
                     results[REG_DUT_DOWN_MSB] = msb_lsb_to_float(dut_regs[2], dut_regs[3])
                     results[REG_DUT_AMB_MSB]  = msb_lsb_to_float(dut_regs[4], dut_regs[5])
                     results[REG_DUT_SYS_MSB]  = msb_lsb_to_float(dut_regs[6], dut_regs[7])
+                if coil_reg and len(coil_reg) == 8:
+                    results['coils'] = coil_reg
 
                 self.after(0, lambda: self._update_ui(results, ok=True))
             except Exception:
@@ -334,16 +692,42 @@ class App(tk.Tk):
     def _update_ui(self, results, ok: bool):
         if not ok:
             self.poll_status.config(text="Connection error", fg=OFF_COLOR)
+            self.graph_poll_status.config(text="Connection error", fg=OFF_COLOR)
             return
 
-        self.poll_status.config(text=f"Live  ·  {POLL_INTERVAL_MS}ms poll", fg=ON_COLOR)
+        status_text = f"Live  ·  {POLL_INTERVAL_MS}ms poll"
+        self.poll_status.config(text=status_text, fg=ON_COLOR)
+        self.graph_poll_status.config(text=status_text, fg=ON_COLOR)
 
         if 'flow_actual' in results:
             self.flow_actual_row.update_value(results['flow_actual'])
+            history_flow.append(results['flow_actual'])
+            self.flow_live_big.config(text=f"{results['flow_actual']:.4f}")
+
+        if 'target_flow' in results:
+            if self.focus_get() == self.target_flow_row.entry:
+                #random to figure out if print is printing
+                # print(f'focused on target{random.random()}')
+                pass
+            else:
+                self.target_flow_row.update_value(results['target_flow'])
 
         for msb_addr, row in self.dut_rows.items():
             if msb_addr in results:
                 row.update_value(results[msb_addr])
+
+        if REG_DUT_UP_MSB   in results: history_up.append(results[REG_DUT_UP_MSB])
+        if REG_DUT_DOWN_MSB in results: history_down.append(results[REG_DUT_DOWN_MSB])
+        if REG_DUT_AMB_MSB  in results: history_amb.append(results[REG_DUT_AMB_MSB])
+
+        self.graph_up.update()
+        self.graph_down.update()
+        self.graph_amb.update()
+        self.graph_flow.update()
+
+        if 'coils' in results:
+            for i, toggle in enumerate(self.coil_toggles):
+                toggle.update_from_poll(results['coils'][i])
 
 
 if __name__ == "__main__":
