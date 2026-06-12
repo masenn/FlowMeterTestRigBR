@@ -90,6 +90,8 @@ static void DUT_data_to_modbus_tcp_fixed(DUT_Slot_t* dut)
     write_float_to_holding_register(REG_DUT_DOWN,meter.DEBUG_DOWN);
     write_float_to_holding_register(REG_DUT_AMB,meter.DEBUG_AMB);
     write_float_to_holding_register(REG_DUT_SYS,meter.DEBUG_SYSTICK);
+    write_single_holding_register(REG_DUT_BATCH,meter.BATCH);
+    write_single_holding_register(REG_DUT_BATCHSN,meter.BATCH_SN);
 
 }
 
@@ -234,6 +236,7 @@ void update_modbus_tcp_fixed(DUT_Slot_t* dut)
     process_writeable_values();
     //scaled value
     write_single_holding_register(REG_FLOW_ACTUAL,(uint16_t)(flow_actual*10));
+
 }
 
 

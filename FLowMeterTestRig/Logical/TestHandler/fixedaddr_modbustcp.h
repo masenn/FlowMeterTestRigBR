@@ -18,6 +18,9 @@
 #define REG_DUT_DOWN 0x12
 #define REG_DUT_AMB 0x14
 #define REG_DUT_SYS 0x16
+#define REG_DUT_BATCH 0x18
+#define REG_DUT_BATCHSN 0x19
+
 
 #define COIL_BUFFER_SIZE 8
 

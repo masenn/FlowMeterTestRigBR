@@ -6,6 +6,8 @@ import struct
 from collections import deque
 import time
 from pyModbusTCP.client import ModbusClient
+import pandas as pd
+import numpy as np
 
 # Modbus client
 c = ModbusClient(host='172.16.100.50', port=502, unit_id=1, auto_open=True, auto_close=True)
@@ -27,8 +29,8 @@ COILS = [
 HOLDING_ADDRESS_BASE = 24576
 COIL_ADDRESS_BASE    = 16384
 
-REG_TARGET_FLOW  = HOLDING_ADDRESS_BASE + 1
 REG_FLOW_ACTUAL  = HOLDING_ADDRESS_BASE 
+REG_TARGET_FLOW  = HOLDING_ADDRESS_BASE + 1
 REG_DUT_UP_MSB   = HOLDING_ADDRESS_BASE + 0x10
 REG_DUT_UP_LSB   = HOLDING_ADDRESS_BASE + 0x11
 REG_DUT_DOWN_MSB = HOLDING_ADDRESS_BASE + 0x12
@@ -37,6 +39,12 @@ REG_DUT_AMB_MSB  = HOLDING_ADDRESS_BASE + 0x14
 REG_DUT_AMB_LSB  = HOLDING_ADDRESS_BASE + 0x15
 REG_DUT_SYS_MSB  = HOLDING_ADDRESS_BASE + 0x16
 REG_DUT_SYS_LSB  = HOLDING_ADDRESS_BASE + 0x17
+REG_DUT_BATCH = HOLDING_ADDRESS_BASE + 0x18
+REG_DUT_BATCHSN = HOLDING_ADDRESS_BASE + 0x19
+
+COIL_DUT_BASE_ADDR = 3
+COIL_NO_PID_ENABLE = 2
+COIL_NO_ISOLATION_ENABLE = 1
 
 # Palette
 BG        = "#1a1e2e"
@@ -64,6 +72,10 @@ history_flow = deque(maxlen=MAX_HISTORY)
 
 def msb_lsb_to_float(msb: int, lsb: int) -> float:
     raw = ((msb & 0xFFFF) << 16) | (lsb & 0xFFFF)
+    return struct.unpack('>f', struct.pack('>I', raw))[0]
+
+def ieee754_to_float(base_addr, regs):
+    raw = ((regs[base_addr] & 0xFFFF) << 16) | (regs[base_addr+1] & 0xFFFF)
     return struct.unpack('>f', struct.pack('>I', raw))[0]
 
 
@@ -138,7 +150,26 @@ class TestContext:
         return c.read_coils(COIL_ADDRESS_BASE, 8)
 
     def read_dut_regs(self):
-        return c.read_holding_registers(REG_DUT_UP_MSB, 8)
+        return c.read_holding_registers(REG_DUT_UP_MSB, 10)
+    
+    def select_dut(self,dut_no: int):
+        # if DUT1 is selected: dut_idx = COIL_DUT_BASE_ADDR
+        # if DUT5 is selceted: dut_idx = COIL_DUT_BASE_ADDR+4
+        coil_values = [False, False, False, False, False]
+        coil_values[dut_no-1] = True
+        c.write_multiple_coils(COIL_ADDRESS_BASE+COIL_DUT_BASE_ADDR,coil_values)
+
+    def set_isolation_valve(self,value):
+        c.write_single_coil(COIL_ADDRESS_BASE + COIL_NO_ISOLATION_ENABLE,value)
+
+    def set_pid_enable(self,value):
+        c.write_single_coil(COIL_ADDRESS_BASE + COIL_NO_PID_ENABLE,value)
+
+    
+    
+    def clear_duts(self):
+        coil_values = [False, False, False, False, False]
+        c.write_multiple_coils(COIL_ADDRESS_BASE+COIL_DUT_BASE_ADDR,coil_values)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -147,23 +178,45 @@ class TestContext:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _test_flow_ramp(ctx: TestContext):
-    """Skeleton: ramp target flow up and down in steps."""
-    ctx.log("Flow ramp — implement me")
-    # TODO: example structure —
-    steps = range(300, 2500, 100)
+    ctx.log("Flow ramp - Starting up!")
+    ctx.clear_duts()
+    #remember, this is 1 indexed to align with physical cables 
+    ctx.select_dut(2)
+    ctx.set_isolation_valve(True)
+    ctx.set_pid_enable(True)
+    steps = range(300, 2500, 50)
+    df = pd.DataFrame(columns=['TARGET','FLOW','UP', 'DOWN', 'AMB', 'SYS'])
+    print(df)
     for flow in steps:
-        if ctx.stopped:
-            return
+        # number of sub readings 
         ctx.set_target_flow(flow)
-        ctx.sleep(10)
-        ctx.log(f'Current flow: {ctx.read_flow_actual()}')
+        ctx.sleep(3)
+        for n in range(0,5):
+            if ctx.stopped:
+                return
+            ctx.sleep(2)
+            flow_actual = ctx.read_flow_actual()
+            dut_regs = ctx.read_dut_regs()
+            if flow_actual and dut_regs:
+                    row = {'TARGET':flow,'FLOW':flow_actual,'UP':ieee754_to_float(0,dut_regs),'DOWN':ieee754_to_float(2,dut_regs),'AMB':ieee754_to_float(4,dut_regs),'SYS':ieee754_to_float(6,dut_regs)}
+            print('Made it')
+            df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
     ctx.log("Flow ramp done")
+    print(df)
+    df.to_csv('test.csv')
+    ctx.set_isolation_valve(False)
+    ctx.set_pid_enable(False)
 
 
 def _test_coil_sequence(ctx: TestContext):
     """Skeleton: exercise coils in sequence."""
-    ctx.log("Coil sequence — implement me")
+    ctx.log("Testing each coil")
     # TODO: step through coils, set/clear, verify state
+    for i in range(0,5):
+        ctx.select_dut(i)
+        ctx.log(COIL_DUT_BASE_ADDR + i)
+        ctx.sleep(3)
+    ctx.clear_duts()
     ctx.log("Coil sequence done")
 
 
@@ -176,17 +229,15 @@ def _test_dut_cycle(ctx: TestContext):
 
 def _test_steady_state(ctx: TestContext):
     """Skeleton: hold a setpoint and log stability over time."""
-    ctx.log("Steady state — implement me")
-    # TODO: set flow, wait for settle, sample over window, compute stddev
-    ctx.log("Steady state done")
-
+    ctx.log(f'BATCH: {ctx.read_dut_regs()[8]}, SN:{ctx.read_dut_regs()[9]}')
+    
 
 # Registry: (display name, function)
 TESTS = [
     ("Flow Ramp",       _test_flow_ramp),
     ("Coil Sequence",   _test_coil_sequence),
     ("DUT Cycle",       _test_dut_cycle),
-    ("Steady State",    _test_steady_state),
+    ("Get Batch Info",    _test_steady_state),
 ]
 
 
