@@ -1,3 +1,5 @@
 Temp/
 Binaries/
 Diagnosis/
+python/tests
+python/__pycache__

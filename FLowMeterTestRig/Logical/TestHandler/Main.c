@@ -32,7 +32,8 @@ _GLOBAL BOOL reset_log;
 _GLOBAL BOOL flow_meter_power_en;
 
 
-_LOCAL INT active_dut;
+_GLOBAL UINT active_dut;
+static uint16_t last_active_dut = 0, write_heater_ct = 0;
 
 
 DUT_Slot_t duts[5];
@@ -57,17 +58,26 @@ void modbus_init(void)
 
 void modbus_cyclic(void)
 {
-	int i;
-	for(i = 1; i < 2;i++)
+	// int i;
+	// for(i = 0; i < 5;i++)
+	// {
+	// 	int err = serve_DUT(&duts[i]);
+	// 	dut_okay[i] = !(err != 0 && err != 65535);
+	// } 
+	int err = serve_DUT(&duts[active_dut]);
+	uint16_t current_cmd = get_current_modbus_cmd();
+	if (current_cmd == MODBUS_CMD_HEATEROFF || current_cmd == MODBUS_CMD_HEATERON)
 	{
-		int err = serve_DUT(&duts[i]);
-		dut_okay[i] = !(err != 0 && err != 65535);
-	} 
+		if(err == 0) 
+		{
+			set_modbus_cmd(MODBUS_CMD_GETDEBUG);
+		}
+	}
+	dut_okay[active_dut] = !(err != 0 && err != 65535);
 }
 
 _INIT void init(void)
 {
-	flow_meter_power_en = 1;
 	init_data_logger("test_log.csv");
 	modbus_init();
 	modbus_tcp_load_initial_states();
@@ -81,7 +91,6 @@ _CYCLIC void Cyclic(void)
 	else if (send_heater_on) set_modbus_cmd(MODBUS_CMD_HEATERON);
 	else set_modbus_cmd(MODBUS_CMD_GETDEBUG);
 	modbus_cyclic();
-	// update_modbus_tcp_values(&duts[active_dut]);
 	update_modbus_tcp_fixed(&duts[active_dut]);
 	// if(enable_flow_controller) 
 	// {

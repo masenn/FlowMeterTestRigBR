@@ -118,7 +118,7 @@ int serve_DUT(DUT_Slot_t* dut)
 	return error_code;
 }
 
-void get_current_modbus_cmd() 
+uint16_t get_current_modbus_cmd() 
 {
 	return selected_cmd_id;
 }

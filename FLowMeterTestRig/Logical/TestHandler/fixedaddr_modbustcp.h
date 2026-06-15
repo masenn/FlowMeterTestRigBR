@@ -12,6 +12,7 @@
 
 #define REG_FLOW_ACTUAL 0x00
 #define REG_FLOW_TARGET 0x01
+#define REG_ACTIVE_DUT 0x02
 
 
 #define REG_DUT_UP 0x10
@@ -32,6 +33,7 @@
 #define COIL_DUT3                       5
 #define COIL_DUT4                       6
 #define COIL_DUT5                       7
+
 
 void modbus_tcp_load_initial_states();
 void update_modbus_tcp_fixed(DUT_Slot_t* dut);

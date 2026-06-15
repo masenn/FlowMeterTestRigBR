@@ -68,5 +68,6 @@ typedef struct {
 void init_DUT(DUT_Slot_t* dut, char* device_str,int address);
 int serve_DUT(DUT_Slot_t* dut);
 void set_modbus_cmd(uint16_t new_cmd);
+uint16_t get_current_modbus_cmd();
 bool data_is_stale(DUT_Slot_t* dut);
 void mark_data_as_read(DUT_Slot_t* dut);

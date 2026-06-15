@@ -31,6 +31,7 @@ COIL_ADDRESS_BASE    = 16384
 
 REG_FLOW_ACTUAL  = HOLDING_ADDRESS_BASE 
 REG_TARGET_FLOW  = HOLDING_ADDRESS_BASE + 1
+REG_ACTIVE_DUT   = HOLDING_ADDRESS_BASE + 0x02
 REG_DUT_UP_MSB   = HOLDING_ADDRESS_BASE + 0x10
 REG_DUT_UP_LSB   = HOLDING_ADDRESS_BASE + 0x11
 REG_DUT_DOWN_MSB = HOLDING_ADDRESS_BASE + 0x12
@@ -80,7 +81,7 @@ def ieee754_to_float(base_addr, regs):
 
 
 def read_initial_state() -> dict:
-    state = {'coils': None, 'target_flow': None, 'flow_actual': None, 'dut_regs': None}
+    state = {'coils': None, 'target_flow': None, 'flow_actual': None, 'dut_regs': None, 'active_dut': None}
     try:
         coils = c.read_coils(COIL_ADDRESS_BASE, 8)
         if coils and len(coils) == 8:
@@ -88,6 +89,9 @@ def read_initial_state() -> dict:
         target = c.read_holding_registers(REG_TARGET_FLOW, 1)
         if target:
             state['target_flow'] = target[0]
+        active_dut = c.read_holding_registers(REG_ACTIVE_DUT, 1)
+        if active_dut:
+            state['active_dut'] = active_dut[0]
         flow = c.read_holding_registers(REG_FLOW_ACTUAL, 1)
         if flow:
             state['flow_actual'] = float(flow[0])
@@ -136,6 +140,16 @@ class TestContext:
     def set_target_flow(self, value: int):
         c.write_single_register(REG_TARGET_FLOW, value)
 
+    def read_target_flow(self):
+        regs = c.read_holding_registers(REG_TARGET_FLOW, 1)
+        if not regs: return 0
+        return regs[0]
+
+    def read_active_dut(self):
+        regs = c.read_holding_registers(REG_ACTIVE_DUT, 1)
+        if not regs: return 0
+        return regs[0]
+
     def read_flow_actual(self) -> float:
         reg = c.read_holding_registers(REG_FLOW_ACTUAL, 1)
         if reg and reg[0] < 40000:
@@ -165,11 +179,32 @@ class TestContext:
     def set_pid_enable(self,value):
         c.write_single_coil(COIL_ADDRESS_BASE + COIL_NO_PID_ENABLE,value)
 
-    
+    def get_batch_and_sn(self):
+        """
+            @return batch and sn in an array
+        """
+        regs = self.read_dut_regs()
+        if not regs: return [0,0]
+        return [regs[8],regs[9]]
     
     def clear_duts(self):
         coil_values = [False, False, False, False, False]
         c.write_multiple_coils(COIL_ADDRESS_BASE+COIL_DUT_BASE_ADDR,coil_values)
+
+    # 1-indexed dut_no to match cable notation
+    def flush_active_line(self,duration=10):
+        active_line = self.read_active_dut()
+        self.select_dut(active_line)
+        self.log(f'Flushing out dut {active_line}')
+        self.sleep(2)
+        prev_target = self.read_target_flow()
+        self.set_target_flow(1500)
+        self.sleep(duration)
+        self.set_target_flow(prev_target)
+
+        
+        
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -177,7 +212,7 @@ class TestContext:
 #  Signature: (ctx: TestContext) -> None
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _test_flow_ramp(ctx: TestContext):
+def _test_flow_ramp(ctx: TestContext,idx=0):
     ctx.log("Flow ramp - Starting up!")
     ctx.clear_duts()
     #remember, this is 1 indexed to align with physical cables 
@@ -186,27 +221,60 @@ def _test_flow_ramp(ctx: TestContext):
     ctx.set_pid_enable(True)
     steps = range(300, 2500, 50)
     df = pd.DataFrame(columns=['TARGET','FLOW','UP', 'DOWN', 'AMB', 'SYS'])
-    print(df)
+    print(ctx.get_batch_and_sn())    
+    ctx.log(f'Starting tests with meter: {ctx.get_batch_and_sn()}')
     for flow in steps:
         # number of sub readings 
         ctx.set_target_flow(flow)
         ctx.sleep(3)
+        ctx.log(f'Setting flow to {flow}')
+        #obtain 5 readings per flow
         for n in range(0,5):
             if ctx.stopped:
                 return
             ctx.sleep(2)
+            
+            #get data points
             flow_actual = ctx.read_flow_actual()
             dut_regs = ctx.read_dut_regs()
-            if flow_actual and dut_regs:
-                    row = {'TARGET':flow,'FLOW':flow_actual,'UP':ieee754_to_float(0,dut_regs),'DOWN':ieee754_to_float(2,dut_regs),'AMB':ieee754_to_float(4,dut_regs),'SYS':ieee754_to_float(6,dut_regs)}
-            print('Made it')
+
+            #concurrent access from this thread and UI thread periodically cause Nones to occur
+            failure_ctr = 0
+            while not flow_actual or not dut_regs:
+                #return if continual error
+                ctx.log('None type detected')
+                ctx.sleep(.1)
+                if failure_ctr > 5:
+                    df.to_csv('failed_test.csv')
+                    ctx.log('Test failed!')
+                    ctx.set_isolation_valve(False)
+                    ctx.set_pid_enable(False)
+                    ctx._stop.set()
+                    return
+                failure_ctr += 1
+                flow_actual = ctx.read_flow_actual()
+                dut_regs = ctx.read_dut_regs()
+            
+            #add new data to row
+            row = {'TARGET':flow,'FLOW':flow_actual,'UP':ieee754_to_float(0,dut_regs),'DOWN':ieee754_to_float(2,dut_regs),'AMB':ieee754_to_float(4,dut_regs),'SYS':ieee754_to_float(6,dut_regs)}
             df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
     ctx.log("Flow ramp done")
     print(df)
-    df.to_csv('test.csv')
+    df.to_csv(f'.//python//tests//test{idx}.csv')
     ctx.set_isolation_valve(False)
     ctx.set_pid_enable(False)
 
+def _test_ramp_continous(ctx: TestContext):
+    i = 20
+    while not ctx.stopped:
+        _test_flow_ramp(ctx,idx=i)
+        i += 1
+
+def _test_flush(ctx: TestContext):
+    #flush dut number 1 (index 0)!!!!
+    ctx.log('Flushing')
+    ctx.flush_active_line()
+    
 
 def _test_coil_sequence(ctx: TestContext):
     """Skeleton: exercise coils in sequence."""
@@ -236,8 +304,10 @@ def _test_steady_state(ctx: TestContext):
 TESTS = [
     ("Flow Ramp",       _test_flow_ramp),
     ("Coil Sequence",   _test_coil_sequence),
-    ("DUT Cycle",       _test_dut_cycle),
+    ("Continous Flow Measure",_test_ramp_continous),
     ("Get Batch Info",    _test_steady_state),
+    ("Flush",    _test_flush),
+
 ]
 
 
@@ -303,7 +373,53 @@ class TargetFlowRow(tk.Frame):
             self.status.config(text="ERR", fg=OFF_COLOR)
             return
         success = c.write_single_register(REG_TARGET_FLOW, val)
-        print(f'Wrote {self.entry.get()} to {REG_TARGET_FLOW}')
+        # print(f'Wrote {self.entry.get()} to {REG_TARGET_FLOW}')
+        self.status.config(text="OK" if success else "FAIL",
+                           fg=ON_COLOR if success else OFF_COLOR)
+        self.after(2000, lambda: self.status.config(text=""))
+
+
+class ActiveDutRow(tk.Frame):
+    def __init__(self, parent, initial_value=0, **kwargs):
+        super().__init__(parent, bg=PANEL, **kwargs)
+        self.configure(highlightbackground=BORDER, highlightthickness=1, padx=16, pady=10)
+        left = tk.Frame(self, bg=PANEL)
+        left.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        tk.Label(left, text="Active DUT", bg=PANEL, fg=TEXT,
+                 font=("Helvetica", 11, "bold"), anchor="w").pack(anchor="w")
+        tk.Label(left, text=f"Reg  {REG_ACTIVE_DUT}", bg=PANEL, fg=SUBTEXT,
+                 font=("Courier", 9), anchor="w").pack(anchor="w")
+        right = tk.Frame(self, bg=PANEL)
+        right.pack(side=tk.RIGHT, padx=(12, 0))
+        self.entry = tk.Entry(right, width=8, bg=ENTRY_BG, fg=TEXT, insertbackground=TEXT,
+                              font=("Courier", 12), relief=tk.FLAT, justify="right")
+        self.entry.pack(side=tk.LEFT, padx=(0, 8))
+        self.entry.insert(0, str(initial_value))
+        self.send_btn = tk.Button(right, text="Set", bg=ACCENT, fg="white",
+                                  font=("Helvetica", 10, "bold"), relief=tk.FLAT,
+                                  padx=10, pady=4, cursor="hand2",
+                                  activebackground="#3a7de0", activeforeground="white",
+                                  command=self.send)
+        self.send_btn.pack(side=tk.LEFT)
+        self.status = tk.Label(right, text="", bg=PANEL, fg=SUBTEXT,
+                               font=("Helvetica", 8), width=4)
+        self.status.pack(side=tk.LEFT, padx=(6, 0))
+        self.entry.bind("<Return>", lambda e: self.send())
+
+    def update_value(self, val: float):
+        self.entry.delete(0, tk.END)
+        self.entry.insert(0, f'{val:.1f}')
+
+    def send(self):
+        try:
+            val = int(self.entry.get())
+            if val < 0 or val > 65535:
+                raise ValueError
+        except ValueError:
+            self.status.config(text="ERR", fg=OFF_COLOR)
+            return
+        success = c.write_single_register(REG_ACTIVE_DUT, val)
+        # print(f'Wrote {self.entry.get()} to {REG_ACTIVE_DUT}')
         self.status.config(text="OK" if success else "FAIL",
                            fg=ON_COLOR if success else OFF_COLOR)
         self.after(2000, lambda: self.status.config(text=""))
@@ -484,6 +600,11 @@ class App(tk.Tk):
         init_target = initial_state['target_flow'] or 0
         self.target_flow_row = TargetFlowRow(container, initial_value=init_target)
         self.target_flow_row.pack(fill=tk.X, pady=4)
+
+        init_active_dut = initial_state['active_dut'] or 0
+        self.active_dut_row = ActiveDutRow(container, initial_value=init_active_dut)
+        self.active_dut_row.pack(fill=tk.X, pady=4)
+
         self.flow_actual_row = ReadingRow(container, "Flow Actual", REG_FLOW_ACTUAL)
         self.flow_actual_row.pack(fill=tk.X, pady=4)
         if initial_state['flow_actual'] is not None:
@@ -715,14 +836,14 @@ class App(tk.Tk):
         def fetch():
             try:
                 dut_regs = c.read_holding_registers(REG_DUT_UP_MSB, 8)
-                flow_reg = c.read_holding_registers(REG_FLOW_ACTUAL, 2)
+                flow_reg = c.read_holding_registers(REG_FLOW_ACTUAL, 3)
                 coil_reg = c.read_coils(COIL_ADDRESS_BASE, 8)
 
                 results = {}
                 if flow_reg and flow_reg[0] < 40000:
                     results['flow_actual'] = flow_reg[0] / 10
-                    # print(f'Trying to update: {flow_reg[1]}')
                     results['target_flow'] = flow_reg[1]
+                    results['active_dut']  = flow_reg[2]
                 else:
                     results['flow_actual'] = 0.0
                 if dut_regs and len(dut_regs) == 8:
@@ -757,11 +878,15 @@ class App(tk.Tk):
 
         if 'target_flow' in results:
             if self.focus_get() == self.target_flow_row.entry:
-                #random to figure out if print is printing
-                # print(f'focused on target{random.random()}')
                 pass
             else:
                 self.target_flow_row.update_value(results['target_flow'])
+
+        if 'active_dut' in results:
+            if self.focus_get() == self.active_dut_row.entry:
+                pass
+            else:
+                self.active_dut_row.update_value(results['active_dut'])
 
         for msb_addr, row in self.dut_rows.items():
             if msb_addr in results:
@@ -789,6 +914,7 @@ if __name__ == "__main__":
         print("  Startup read OK")
         print(f"  Target flow : {initial_state['target_flow']}")
         print(f"  Flow actual : {initial_state['flow_actual']}")
+        print(f"  Active DUT  : {initial_state['active_dut']}")
         print(f"  Coils       : {initial_state['coils']}")
         print(f"  DUT regs    : {initial_state['dut_regs']}")
     else:

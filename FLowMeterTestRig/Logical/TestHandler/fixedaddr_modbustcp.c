@@ -3,6 +3,8 @@
 _GLOBAL REAL flow_actual;
 _GLOBAL UINT target_flow;
 static uint16_t new_target_flow,old_target_flow;
+//writable only from modbus
+_GLOBAL UINT active_dut;
 
 _GLOBAL BOOL enable_isolation_valve;
 _GLOBAL BOOL enable_pump;
@@ -184,6 +186,8 @@ static void process_writeable_values()
 // PRIMARILY IMPORTANT WHEN FLASHING NEW CODE WITHOUT WARM RESET
 void modbus_tcp_load_initial_states()
 {
+    //reads active dut directly from modbus
+    read_single_holding_register(REG_ACTIVE_DUT,&active_dut);
     int i;
     for(i = 0; i < COIL_BUFFER_SIZE;i++)
     {
@@ -236,6 +240,7 @@ void update_modbus_tcp_fixed(DUT_Slot_t* dut)
     process_writeable_values();
     //scaled value
     write_single_holding_register(REG_FLOW_ACTUAL,(uint16_t)(flow_actual*10));
+    read_single_holding_register(REG_ACTIVE_DUT,&active_dut);
 
 }
 
