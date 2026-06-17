@@ -71,6 +71,9 @@ void modbus_cyclic(void)
 		if(err == 0) 
 		{
 			set_modbus_cmd(MODBUS_CMD_GETDEBUG);
+			send_heater_on = false;
+			send_heater_off = false;
+
 		}
 	}
 	dut_okay[active_dut] = !(err != 0 && err != 65535);
