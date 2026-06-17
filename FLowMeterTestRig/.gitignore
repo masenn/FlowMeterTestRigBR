@@ -3,3 +3,6 @@ Binaries/
 Diagnosis/
 python/tests
 python/__pycache__
+*.csv
+*.db
+*.code-workspace

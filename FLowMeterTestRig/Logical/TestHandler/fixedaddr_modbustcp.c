@@ -11,6 +11,9 @@ _GLOBAL BOOL enable_pump;
 _GLOBAL BOOL dut_solenoids[5];
 _GLOBAL BOOL enable_flow_controller;
 
+_GLOBAL BOOL send_heater_on;
+_GLOBAL BOOL send_heater_off;
+
 // helper structs for use in the below functions
 struct mbSlWordPut wordput_t = {
     .station = "IF4.MODBUSSLAVE_1",
@@ -159,13 +162,27 @@ static void process_writeable_values()
                 case COIL_DUT3:
                 case COIL_DUT4:
                 case COIL_DUT5:
-                    dut_solenoids[i - COIL_DUT1] = coil_state_new[i];  // ← fixed
+                    dut_solenoids[i - COIL_DUT1] = coil_state_new[i];  // 
                     break;
                 default:
                     break;
+                
             }
             coil_state_old[i] = coil_state_new[i];
         }
+
+    }
+    // rising edge coils --> set and forget, software clears them when complete, don't care about old state
+    if(coil_state_new[COIL_HEATER_ON])
+    {
+        // set heater will return to default command upon success
+        send_heater_on = true;
+        write_single_coil(COIL_HEATER_ON,false);
+    }
+    else if (coil_state_new[COIL_HEATER_OFF])
+    {
+        send_heater_off = true;
+        write_single_coil(COIL_HEATER_OFF,false);
     }
     load_current_coil_state();
 
@@ -176,6 +193,8 @@ static void process_writeable_values()
         target_flow = new_target_flow;
     }
     old_target_flow = new_target_flow;
+    read_single_holding_register(REG_ACTIVE_DUT,&active_dut);
+
     //ensuring that any changes from the GUI are written into modbus registers
     write_single_holding_register(REG_FLOW_TARGET,target_flow);
 }
@@ -234,6 +253,10 @@ void modbus_tcp_load_initial_states()
     write_single_holding_register(REG_FLOW_TARGET,target_flow);
 }
 
+/**
+ * Note the "fixed" is to distinguish from the deprecated dynamic addressing functions
+ * //TODO remove old functions
+ */
 void update_modbus_tcp_fixed(DUT_Slot_t* dut)
 {
     DUT_data_to_modbus_tcp_fixed(dut);

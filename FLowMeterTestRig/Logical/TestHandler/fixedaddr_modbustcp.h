@@ -23,7 +23,7 @@
 #define REG_DUT_BATCHSN 0x19
 
 
-#define COIL_BUFFER_SIZE 8
+#define COIL_BUFFER_SIZE 10
 
 #define COIL_FLOW_CONTROLLER_ENABLE     0
 #define COIL_ISOLATION_VALVE_ENABLE     1
@@ -33,7 +33,8 @@
 #define COIL_DUT3                       5
 #define COIL_DUT4                       6
 #define COIL_DUT5                       7
-
+#define COIL_HEATER_ON                  8
+#define COIL_HEATER_OFF                 9
 
 void modbus_tcp_load_initial_states();
 void update_modbus_tcp_fixed(DUT_Slot_t* dut);
