@@ -8,6 +8,9 @@ import time
 from pyModbusTCP.client import ModbusClient
 import pandas as pd
 import numpy as np
+from datetime import datetime
+import sqlite3
+import test_analyzer as ta
 
 # Modbus client
 c = ModbusClient(host='172.16.100.50', port=502, unit_id=1, auto_open=True, auto_close=True)
@@ -46,6 +49,8 @@ REG_DUT_BATCHSN = HOLDING_ADDRESS_BASE + 0x19
 COIL_DUT_BASE_ADDR = 3
 COIL_NO_PID_ENABLE = 2
 COIL_NO_ISOLATION_ENABLE = 1
+COIL_HEATER_ON = 8
+COIL_HEATER_OFF = 9
 
 # Palette
 BG        = "#1a1e2e"
@@ -69,6 +74,8 @@ history_up   = deque(maxlen=MAX_HISTORY)
 history_down = deque(maxlen=MAX_HISTORY)
 history_amb  = deque(maxlen=MAX_HISTORY)
 history_flow = deque(maxlen=MAX_HISTORY)
+
+
 
 
 def msb_lsb_to_float(msb: int, lsb: int) -> float:
@@ -108,6 +115,9 @@ def read_initial_state() -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 
 class TestContext:
+
+
+
     """
     Passed into every test function.
     Provides hardware access, stop signalling, and UI logging.
@@ -115,6 +125,9 @@ class TestContext:
     def __init__(self, log_fn, stop_event: threading.Event):
         self._log   = log_fn
         self._stop  = stop_event
+
+
+    
 
     # Logging
     def log(self, msg: str):
@@ -170,8 +183,20 @@ class TestContext:
         # if DUT1 is selected: dut_idx = COIL_DUT_BASE_ADDR
         # if DUT5 is selceted: dut_idx = COIL_DUT_BASE_ADDR+4
         coil_values = [False, False, False, False, False]
-        coil_values[dut_no-1] = True
+        coil_values[dut_no] = True
         c.write_multiple_coils(COIL_ADDRESS_BASE+COIL_DUT_BASE_ADDR,coil_values)
+    
+    def set_active_dut(self,dut):
+        c.write_single_register(REG_ACTIVE_DUT,dut)
+        self.select_dut(dut)
+        print(f'Trying to set ({dut}) the pinche active dut {c.read_holding_registers(REG_ACTIVE_DUT,1)}')
+
+
+    def set_heater(self):
+        c.write_single_coil(COIL_ADDRESS_BASE + COIL_HEATER_ON,True)
+    
+    def clear_heater(self):
+        c.write_single_coil(COIL_ADDRESS_BASE + COIL_HEATER_OFF,True)
 
     def set_isolation_valve(self,value):
         c.write_single_coil(COIL_ADDRESS_BASE + COIL_NO_ISOLATION_ENABLE,value)
@@ -193,12 +218,16 @@ class TestContext:
 
     # 1-indexed dut_no to match cable notation
     def flush_active_line(self,duration=10):
+        self.set_isolation_valve(True)
         active_line = self.read_active_dut()
+        print(f'DEBUG{active_line}')
         self.select_dut(active_line)
-        self.log(f'Flushing out dut {active_line}')
+        # self.log(f'Flushing out dut {active_line}')
         self.sleep(2)
         prev_target = self.read_target_flow()
         self.set_target_flow(1500)
+        self.set_pid_enable(True)
+
         self.sleep(duration)
         self.set_target_flow(prev_target)
 
@@ -212,37 +241,45 @@ class TestContext:
 #  Signature: (ctx: TestContext) -> None
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _test_flow_ramp(ctx: TestContext,idx=0):
+def _test_flow_ramp(ctx: TestContext,dut=0,heater_tries=1):
+    conn = sqlite3.connect(f'python/contdut.db')
+    cur = conn.cursor()
     ctx.log("Flow ramp - Starting up!")
-    ctx.clear_duts()
     #remember, this is 1 indexed to align with physical cables 
-    ctx.select_dut(2)
     ctx.set_isolation_valve(True)
     ctx.set_pid_enable(True)
-    steps = range(300, 2500, 50)
+    ctx.sleep(3)
+    ctx.flush_active_line(duration=25)
+    ctx.set_heater()
+    ctx.set_heater()
+    steps = range(300, 2500, 100)
     df = pd.DataFrame(columns=['TARGET','FLOW','UP', 'DOWN', 'AMB', 'SYS'])
-    print(ctx.get_batch_and_sn())    
-    ctx.log(f'Starting tests with meter: {ctx.get_batch_and_sn()}')
+    meta_data = ctx.get_batch_and_sn()
+    batch_sn = 0
+    if(len(meta_data) > 1):
+        batch_sn = meta_data[0]
+        ctx.log(f'Found board SN:{batch_sn}')
+    ctx.log(f'Starting tests with meter: {batch_sn} at dut pos:{dut}')
     for flow in steps:
         # number of sub readings 
         ctx.set_target_flow(flow)
         ctx.sleep(3)
-        ctx.log(f'Setting flow to {flow}')
+        # ctx.log(f'Setting flow to {flow}')
         #obtain 5 readings per flow
-        for n in range(0,5):
+        for n in range(0,3):
             if ctx.stopped:
                 return
             ctx.sleep(2)
-            
             #get data points
             flow_actual = ctx.read_flow_actual()
             dut_regs = ctx.read_dut_regs()
 
             #concurrent access from this thread and UI thread periodically cause Nones to occur
+            # TODO fix concurrency (not really a big deal)
             failure_ctr = 0
             while not flow_actual or not dut_regs:
                 #return if continual error
-                ctx.log('None type detected')
+                # ctx.log('None type detected')
                 ctx.sleep(.1)
                 if failure_ctr > 5:
                     df.to_csv('failed_test.csv')
@@ -258,42 +295,70 @@ def _test_flow_ramp(ctx: TestContext,idx=0):
             #add new data to row
             row = {'TARGET':flow,'FLOW':flow_actual,'UP':ieee754_to_float(0,dut_regs),'DOWN':ieee754_to_float(2,dut_regs),'AMB':ieee754_to_float(4,dut_regs),'SYS':ieee754_to_float(6,dut_regs)}
             df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+            #continue to get next reading
     ctx.log("Flow ramp done")
     print(df)
-    df.to_csv(f'.//python//tests//test{idx}.csv')
+    datetime.date
+    file_name = f'DUT{dut}-{datetime.now().strftime("%Y-%m-%d-%H-%M")}test'
+    df = ta.mod_dataset(df)
+    # further processing
+    df.to_csv(f'.//python//tests//batch//{file_name}.csv')
+    df.to_sql(f'{file_name}',conn,if_exists='replace',index=False)
+    ctx.clear_heater()
+    ctx.clear_heater()
+    #allow flow to ramp down before closing valves
+    ctx.set_target_flow(0)
+    ctx.sleep(10)
     ctx.set_isolation_valve(False)
     ctx.set_pid_enable(False)
+    cur.close()
+    conn.close()
 
 def _test_ramp_continous(ctx: TestContext):
-    i = 20
     while not ctx.stopped:
-        _test_flow_ramp(ctx,idx=i)
-        i += 1
+        for dut in range(0,5):
+            ctx.log(f'Starting tests for DUT{dut}')
+            ctx.set_active_dut(dut)
+            _test_flow_ramp(ctx,dut)
+            pass
 
 def _test_flush(ctx: TestContext):
     #flush dut number 1 (index 0)!!!!
     ctx.log('Flushing')
     ctx.flush_active_line()
-    
+
+def _test_set_heater(ctx: TestContext):
+    ctx.log('Setting heater')
+    ctx.set_heater()
+
+def _test_clear_heater(ctx: TestContext):
+    ctx.log('Setting heater')
+    ctx.clear_heater()
+
 
 def _test_coil_sequence(ctx: TestContext):
     """Skeleton: exercise coils in sequence."""
     ctx.log("Testing each coil")
     # TODO: step through coils, set/clear, verify state
     for i in range(0,5):
-        ctx.select_dut(i)
-        ctx.log(COIL_DUT_BASE_ADDR + i)
-        ctx.sleep(3)
+        ctx.set_active_dut(i)
+        ctx.log(f'Set coil {i}')
+        ctx.sleep(7)
     ctx.clear_duts()
     ctx.log("Coil sequence done")
 
 
 def _test_dut_cycle(ctx: TestContext):
-    """Skeleton: open each DUT solenoid and capture readings."""
-    ctx.log("DUT cycle — implement me")
-    # TODO: for each DUT solenoid, enable it, dwell, read DUT regs, disable
-    ctx.log("DUT cycle done")
+    ctx.log('Opening active line')
+    ctx.set_active_dut(ctx.read_active_dut())
 
+def _test_single_meter_continuous(ctx: TestContext):
+    while not ctx.stopped:
+        dut = ctx.read_active_dut()
+        ctx.log(f'Reading contents from {dut}')
+        ctx.set_active_dut(dut)
+        _test_flow_ramp(ctx,dut)
+    
 
 def _test_steady_state(ctx: TestContext):
     """Skeleton: hold a setpoint and log stability over time."""
@@ -307,6 +372,10 @@ TESTS = [
     ("Continous Flow Measure",_test_ramp_continous),
     ("Get Batch Info",    _test_steady_state),
     ("Flush",    _test_flush),
+    ("Heater ON",    _test_set_heater),
+    ("Heater OFF",    _test_clear_heater),
+    ("Open Active DUT",    _test_dut_cycle),
+    ("Continous DUT",    _test_single_meter_continuous),
 
 ]
 

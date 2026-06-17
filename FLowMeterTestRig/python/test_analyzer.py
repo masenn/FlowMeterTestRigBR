@@ -6,6 +6,15 @@ NORMALIZED_SUFFIX = '_N'
 def normalize(data):
     return data - min(data)
 
+def mod_dataset(df):
+    df['t'] = normalize(df['SYS'])
+    df['DELTA'] = df['UP'] - df['DOWN']
+    df[f'UP{NORMALIZED_SUFFIX}'] = normalize(df['UP'])
+    df[f'DOWN{NORMALIZED_SUFFIX}'] = normalize(df['DOWN'])
+    df[f'AMB{NORMALIZED_SUFFIX}'] = normalize(df['AMB'])
+    df[f'DELTA{NORMALIZED_SUFFIX}'] = normalize(df['DELTA'])
+    return df
+
 def load_dataset(file_name, test_directory='./tests/'):
     df = pd.read_csv(f'{test_directory}{file_name}')
     df['t'] = normalize(df['SYS'])
