@@ -5,4 +5,5 @@ python/tests
 python/__pycache__
 *.csv
 *.db
+*.db-journal
 *.code-workspace

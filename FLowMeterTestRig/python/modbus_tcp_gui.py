@@ -353,8 +353,12 @@ def _test_dut_cycle(ctx: TestContext):
     ctx.set_active_dut(ctx.read_active_dut())
 
 def _test_single_meter_continuous(ctx: TestContext):
-    while not ctx.stopped:
+    dut = ctx.read_active_dut()
+    # making sure concurrent reads don't always return 0
+    #kinda jank
+    if ctx.read_active_dut() != dut:
         dut = ctx.read_active_dut()
+    while not ctx.stopped:
         ctx.log(f'Reading contents from {dut}')
         ctx.set_active_dut(dut)
         _test_flow_ramp(ctx,dut)
