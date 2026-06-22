@@ -73,11 +73,11 @@ class SQL_storage:
         self.data_list = data_fields
         # class represents test that was run in full
         self.cur.execute('CREATE TABLE IF NOT EXISTS tests(test_id,dut,test_name,test_type_id)')
-        self.cur.execute('CREATE TABLE IF NOT EXISTS readings(test_id,TARGET,FLOW,UP,DOWN,AMB,SYS)')
+        self.cur.execute('CREATE TABLE IF NOT EXISTS readings(test_id,TARGET,FLOW,UP,DOWN,AMB,SYS,t,DELTA,UP_N,DOWN_N,AMB_N,DELTA_N)')
         self.conn.commit()
         pass
 
-    def generate_testid(now : int):
+    def generate_testid():
         return int(time.time())
 
     def add_test(self,test_id,dut,test_name,test_type_id):
@@ -122,40 +122,56 @@ class SQL_storage:
 
 class Tester:
 
+    _PLC_ADDRESS = '172.16.100.50'
+
     def __init__(self):
-        self.c = ModbusTcpClient('172.16.100.50',timeout=3)
+        self.c = ModbusTcpClient(self._PLC_ADDRESS,timeout=3,reconnect_delay=.1,reconnect_delay_max=30)
         print(self.c)
         pass
 
+    #B&R is a bitch and randomly disconnects so reopening on each transmission (NOT efficient but necesarry)
+    def restart_conn(self):
+        self.c.close()
+        self.c = ModbusTcpClient(self._PLC_ADDRESS)
+        time.sleep(.5)
+
     # helper functions
     def write_reg(self,address,value):
+        self.restart_conn()
         self.c.write_register(HOLDING_ADDRESS_BASE + address,value)
 
     def read_reg(self,address):
+        self.restart_conn()
         regs = self.c.read_holding_registers(HOLDING_ADDRESS_BASE + address).registers
         if len(regs) < 1:
             return 0
         return regs[0]
     
     def read_regs(self,address,count):
+        self.restart_conn()
         regs = self.c.read_holding_registers(HOLDING_ADDRESS_BASE + address,count=count).registers
         if(len(regs) < count):
             raise Exception('Could not get full register map')
         return regs
     
     def write_coil(self,address,state):
+        self.restart_conn()
         self.c.write_coil(COIL_ADDRESS_BASE + address,state)
     
     def write_coils(self,address,values):
+        self.restart_conn()
         self.c.write_coils(COIL_ADDRESS_BASE + address,values)
 
-    # LIBRARY FUNCTIONS 
+    # LIBRARY FUNCTIONS
+    #    addressing happens at system level, not using B&R's offsets
+    #       i.e. write_coil(0,True) -- actually writes to coil COIL_ADDRESS_BASE + 0
 
     # Modbus helpers
     def set_target_flow(self, value: int):
-        self.c.write_register(REG_TARGET_FLOW, value)
+        self.write_reg(REG_TARGET_FLOW, value)
         
     def read_actual_flow(self):
+
         return self.read_reg(REG_FLOW_ACTUAL)/10
 
     def read_target_flow(self):
@@ -172,7 +188,7 @@ class Tester:
 
     # up, down, amb, sys
     def get_debug_registers(self):
-        regs = self.read_regs(REG_DUT_UP_MSB,10)
+        regs = self.read_regs(REG_DUT_UP_MSB,8)
         return ieee754_to_float(0,regs),\
             ieee754_to_float(2,regs), \
             ieee754_to_float(4,regs), \
@@ -185,29 +201,42 @@ class Tester:
         self.write_coil(COIL_PUMP_ENABLE,value)
     
     def set_heater(self):
-        self.write_coil(COIL_HEATER_ON)
+        self.write_coil(COIL_HEATER_ON, True)
 
     def clear_heater(self):
-        self.write_coil(COIL_HEATER_OFF)
+        self.write_coil(COIL_HEATER_OFF, True)
+
+    def get_batch_and_sn(self):
+        """
+            @return batch and sn in an array
+        """
+        regs = self.read_regs(REG_DUT_BATCH,2)
+        if not regs: return [0,0]
+        # batch, sn
+        return [regs[0],regs[1]]
                     
     
     ################### TESTS ###################
+
     def cycle_test(self,dut,flush_duration=25,flush_flow=1500):
         self.clear_heater()
         self.set_isolation_valve(True)
         self.set_pump_enable(True)
-        time.sleep(3)
+        self.select_dut_solenoid(dut)
 
+        time.sleep(3)
+        print(f'Flushing out at {flush_flow} ccm')
         #flushing 
         self.set_target_flow(flush_flow)
         time.sleep(flush_duration)
-
+        print('Prepping for Tests')
         #test prep
         self.set_heater()
         steps = range(300, 2500, 100)
         df = pd.DataFrame(columns=['TARGET','FLOW','UP', 'DOWN', 'AMB', 'SYS'])
-        SQL_storage('test_db',[])
+        storage = SQL_storage('./python/pi-dev/test_db',[])
         test_id = SQL_storage.generate_testid()
+        storage.add_test(test_id,dut,f'test',-2)
         meta_data = self.get_batch_and_sn()
         batch_sn = 0
         if(len(meta_data) > 1):
@@ -219,11 +248,11 @@ class Tester:
         for flow in steps:
             # number of sub readings 
             self.set_target_flow(flow)
-            self.sleep(3)
+            time.sleep(3)
             # print(f'Setting flow to {flow}')
             #obtain 5 readings per flow
             for n in range(0,3):
-                self.sleep(2)
+                time.sleep(2)
                 #get data points
                 flow_actual = self.read_actual_flow()
                 up,down,amb,sys = self.get_debug_registers()
@@ -234,11 +263,11 @@ class Tester:
                 while not flow_actual or not up:
                     #return if continual error
                     # print('None type detected')
-                    self.sleep(.1)
+                    time.sleep(.1)
                     if failure_ctr > 5:
                         print('Test failed!')
                         self.set_isolation_valve(False)
-                        self.set_pid_enable(False)
+                        self.set_pump_enable(False)
                         self._stop.set()
                         return
                     failure_ctr += 1
@@ -252,20 +281,19 @@ class Tester:
         print("Flow ramp done")
         print(df)
         
-        # file_name = f'DUT{dut}-{test)id.now().strftime("%Y-%m-%d-%H-%M")}test'
-        df = ta.mod_dataset(df)
+        # file_name = f'DUT{dut}-{time..strftime("%Y-%m-%d-%H-%M")}test'
+        df = mod_dataset(df)
         # further processing
-        df.to_csv(f'.//python//tests//batch//{file_name}.csv')
-        df.to_sql(f'{file_name}',conn,if_exists='replace',index=False)
+        # df.to_csv(f'.//python//tests//batch//{file_name}.csv')
+        # df.to_sql(f'{file_name}',conn,if_exists='replace',index=False)
+        storage.save_dataframe_static(test_id,df)
         self.clear_heater()
         self.clear_heater()
         #allow flow to ramp down before closing valves
         self.set_target_flow(0)
-        self.sleep(10)
+        time.sleep(10)
         self.set_isolation_valve(False)
-        self.set_pid_enable(False)
-        cur.close()
-        conn.close()
+        self.set_pump_enable(False)
         pass
 
     
@@ -273,3 +301,5 @@ t = Tester()
 print('Hello world')
 print(f'Target Flow: {t.read_target_flow()}, Actual Flow {t.read_actual_flow()}')
 print(t.get_debug_registers())
+for i in range(0,10):
+    t.cycle_test(0)
