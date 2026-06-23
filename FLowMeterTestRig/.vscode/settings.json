@@ -1,0 +1,19 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "FLowMeterTestRig/**/Temp/": true,
+        "FLowMeterTestRig/**/Binaries/": true,
+        "FLowMeterTestRig/**/Diagnosis/": true,
+        "FLowMeterTestRig/python/tests": true,
+        "FLowMeterTestRig/python/__pycache__": true,
+        "FLowMeterTestRig/**/*.csv": true,
+        "FLowMeterTestRig/**/*.db": true,
+        "FLowMeterTestRig/**/*.db-journal": true,
+        "FLowMeterTestRig/**/*.code-workspace": true,
+        "python/contdut.db": true
+    }
+}
